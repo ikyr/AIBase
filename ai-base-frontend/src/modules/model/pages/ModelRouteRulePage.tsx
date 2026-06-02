@@ -1,9 +1,5 @@
+import EmptyState from '../../../shared/components/EmptyState';
+
 export default function ModelRouteRulePage() {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#999', gap: 8, flexDirection: 'column' }}>
-      <span style={{ fontSize: 32 }}>🧠</span>
-      <span style={{ fontSize: 14, fontWeight: 500 }}>路由规则</span>
-      <span style={{ fontSize: 12 }}>即将上线</span>
-    </div>
-  );
+  return <EmptyState icon="🧠" title="路由规则" description="配置模型路由和降级策略" />;
 }

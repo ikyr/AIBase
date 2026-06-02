@@ -1,9 +1,5 @@
+import EmptyState from '../../../shared/components/EmptyState';
+
 export default function ApprovalPage() {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#999', gap: 8, flexDirection: 'column' }}>
-      <span style={{ fontSize: 32 }}>📋</span>
-      <span style={{ fontSize: 14, fontWeight: 500 }}>审批工作台</span>
-      <span style={{ fontSize: 12 }}>即将上线</span>
-    </div>
-  );
+  return <EmptyState icon="📋" title="审批工作台" description="处理 Human-in-the-Loop 审批任务" />;
 }

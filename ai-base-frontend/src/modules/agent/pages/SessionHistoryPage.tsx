@@ -1,9 +1,5 @@
+import EmptyState from '../../../shared/components/EmptyState';
+
 export default function SessionHistoryPage() {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#999', gap: 8, flexDirection: 'column' }}>
-      <span style={{ fontSize: 32 }}>🤖</span>
-      <span style={{ fontSize: 14, fontWeight: 500 }}>会话记录</span>
-      <span style={{ fontSize: 12 }}>即将上线</span>
-    </div>
-  );
+  return <EmptyState icon="🤖" title="会话记录" description="查看所有 Agent 会话历史" />;
 }

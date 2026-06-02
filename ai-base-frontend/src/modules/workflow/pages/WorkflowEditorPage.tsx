@@ -1,9 +1,5 @@
+import EmptyState from '../../../shared/components/EmptyState';
+
 export default function WorkflowEditorPage() {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#999', gap: 8, flexDirection: 'column' }}>
-      <span style={{ fontSize: 32 }}>⚙️</span>
-      <span style={{ fontSize: 14, fontWeight: 500 }}>工作流编辑器</span>
-      <span style={{ fontSize: 12 }}>即将上线</span>
-    </div>
-  );
+  return <EmptyState icon="⚙️" title="工作流编辑器" description="可视化编辑 DAG 工作流" />;
 }
