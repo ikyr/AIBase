@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: ai-base-common-test
+
+aibase:
+  security:
+    keys:
+      - test-key-1
+      - test-key-2

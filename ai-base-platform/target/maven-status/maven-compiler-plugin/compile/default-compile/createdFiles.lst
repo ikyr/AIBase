@@ -1,0 +1,9 @@
+com\datang\aibase\platform\service\SlaTracker.class
+com\datang\aibase\platform\entity\PromptVersion.class
+com\datang\aibase\platform\PlatformApplication.class
+com\datang\aibase\platform\controller\PlatformController.class
+com\datang\aibase\platform\mapper\ApprovalRecordMapper.class
+com\datang\aibase\platform\service\PlatformService.class
+com\datang\aibase\platform\entity\ApprovalRecord.class
+com\datang\aibase\platform\service\impl\PlatformServiceImpl.class
+com\datang\aibase\platform\mapper\PromptVersionMapper.class

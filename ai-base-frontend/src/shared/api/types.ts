@@ -32,6 +32,8 @@ export interface KbConfigInfo {
   chunkOverlap: number;
   documentCount: number;
   status: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface KbCreateRequest {

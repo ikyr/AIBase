@@ -1,0 +1,5 @@
+com\datang\aibase\agent\memory\ContextWindowManagerTest.class
+com\datang\aibase\agent\tool\CalculatorToolTest.class
+com\datang\aibase\agent\tool\ToolRegistryTest.class
+com\datang\aibase\agent\memory\ConversationTreeTest.class
+com\datang\aibase\agent\engine\ReActLoopTest.class

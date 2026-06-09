@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: ai-base-skill
+  config:
+    import: "classpath:application-base.yml, optional:nacos:${spring.application.name}.yml"
+
+server:
+  port: 8102

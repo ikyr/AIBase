@@ -1,0 +1,14 @@
+com\datang\aibase\model\mapper\ModelCallLogMapper.class
+com\datang\aibase\model\entity\ModelCallLog.class
+com\datang\aibase\model\entity\ModelRouteRule.class
+com\datang\aibase\model\ModelGatewayApplication.class
+com\datang\aibase\model\entity\ModelConfig.class
+com\datang\aibase\model\mapper\ModelConfigMapper.class
+com\datang\aibase\model\controller\ModelController.class
+com\datang\aibase\model\provider\ModelProvider.class
+com\datang\aibase\model\provider\OpenAIProvider.class
+com\datang\aibase\model\provider\DashScopeProvider.class
+com\datang\aibase\model\mapper\ModelRouteRuleMapper.class
+com\datang\aibase\model\router\ModelRouter.class
+com\datang\aibase\model\service\impl\ModelServiceImpl.class
+com\datang\aibase\model\service\ModelService.class

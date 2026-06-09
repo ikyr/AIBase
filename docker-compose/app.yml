@@ -1,0 +1,109 @@
+version: '3.8'
+
+# ===============================
+# AIBase 后端微服务
+# 依赖 infrastructure.yml 先启动
+# ===============================
+
+x-java-defaults: &java-defaults
+  restart: unless-stopped
+  environment:
+    JAVA_OPTS: ${JAVA_OPTS:--Xms256m -Xmx512m}
+    PG_HOST: ${PG_HOST:-postgres}
+    PG_PORT: ${PG_PORT:-5432}
+    PG_DB: ${PG_DB:-aibase}
+    PG_USER: ${PG_USER:-aibase}
+    PG_PASSWORD: ${PG_PASSWORD:-aibase}
+    REDIS_HOST: ${REDIS_HOST:-redis}
+    REDIS_PORT: ${REDIS_PORT:-6379}
+    REDIS_PASSWORD: ${REDIS_PASSWORD:-aibase_redis_change_me}
+    NACOS_SERVER: ${NACOS_SERVER:-nacos:8848}
+    MILVUS_HOST: ${MILVUS_HOST:-milvus}
+    MILVUS_PORT: ${MILVUS_PORT:-19530}
+    ROCKETMQ_NAMESRV: ${ROCKETMQ_NAMESRV:-rocketmq-namesrv:9876}
+    OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://tempo:4317}
+    DASHSCOPE_API_KEY: ${DASHSCOPE_API_KEY}
+    EMBEDDING_MODEL: ${EMBEDDING_MODEL:-text-embedding-v3}
+
+services:
+  # ---- 第 1 批：无依赖基础服务 ----
+
+  knowledge:
+    build: ../ai-base-knowledge
+    container_name: aibase-knowledge
+    ports:
+      - "8101:8101"
+    <<: *java-defaults
+
+  workflow:
+    build: ../ai-base-workflow
+    container_name: aibase-workflow
+    ports:
+      - "8103:8103"
+    <<: *java-defaults
+
+  skill:
+    build: ../ai-base-skill
+    container_name: aibase-skill
+    ports:
+      - "8102:8102"
+    <<: *java-defaults
+
+  # ---- 第 2 批：依赖基础服务 ----
+
+  agent:
+    build: ../ai-base-agent
+    container_name: aibase-agent
+    ports:
+      - "8105:8105"
+    <<: *java-defaults
+    depends_on:
+      - knowledge
+      - workflow
+      - skill
+
+  mcp-gateway:
+    build: ../ai-base-mcp-gateway
+    container_name: aibase-mcp-gateway
+    ports:
+      - "8106:8106"
+    <<: *java-defaults
+
+  model-gateway:
+    build: ../ai-base-model-gateway
+    container_name: aibase-model-gateway
+    ports:
+      - "8104:8104"
+    <<: *java-defaults
+
+  eval:
+    build: ../ai-base-eval
+    container_name: aibase-eval
+    ports:
+      - "8107:8107"
+    <<: *java-defaults
+
+  platform:
+    build: ../ai-base-platform
+    container_name: aibase-platform
+    ports:
+      - "8108:8108"
+    <<: *java-defaults
+
+  # ---- 第 3 批：API 网关 ----
+
+  api-gateway:
+    build: ../ai-base-gateway
+    container_name: aibase-api-gateway
+    ports:
+      - "8081:8081"
+    <<: *java-defaults
+    depends_on:
+      - knowledge
+      - workflow
+      - agent
+      - skill
+      - mcp-gateway
+      - model-gateway
+      - eval
+      - platform

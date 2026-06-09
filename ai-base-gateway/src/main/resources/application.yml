@@ -1,0 +1,64 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: api-gateway
+  config:
+    import: "optional:nacos:${spring.application.name}.yml"
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_SERVER:localhost:8848}
+        namespace: ${NACOS_NAMESPACE:}
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        - id: knowledge-service
+          uri: http://knowledge:8101
+          predicates:
+            - Path=/api/v1/knowledge/**
+        - id: skill-service
+          uri: http://skill:8102
+          predicates:
+            - Path=/api/v1/skill/**
+        - id: workflow-service
+          uri: http://workflow:8103
+          predicates:
+            - Path=/api/v1/workflow/**
+        - id: model-gateway-service
+          uri: http://model-gateway:8104
+          predicates:
+            - Path=/api/v1/model/**
+        - id: agent-service
+          uri: http://agent:8105
+          predicates:
+            - Path=/api/v1/agent/**
+        - id: mcp-gateway-service
+          uri: http://mcp-gateway:8106
+          predicates:
+            - Path=/api/v1/mcp/**
+        - id: eval-service
+          uri: http://eval:8107
+          predicates:
+            - Path=/api/v1/eval/**
+        - id: platform-service
+          uri: http://platform:8108
+          predicates:
+            - Path=/api/v1/platform/**
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin
+        - Observability
+        - Logging
+        - Auth
+        - RateLimit=100,10
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOriginPatterns: "*"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+            allowCredentials: true

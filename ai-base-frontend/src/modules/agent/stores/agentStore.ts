@@ -1,36 +1,73 @@
-// src/modules/agent/stores/agentStore.ts
 import { create } from 'zustand';
-
-interface AgentDef {
-  id: string;
-  name: string;
-  description: string;
-  model: string;
-  coordinationMode: string;
-  skillCount: number;
-  kbCount: number;
-  status: string;
-}
+import { listAgents, getAgentById, listAgentSessions, createAgent, updateAgent, deleteAgent, type AgentDef, type AgentSession, type AgentCreateRequest } from '../../../shared/api/agent';
 
 interface AgentState {
   agents: AgentDef[];
   loading: boolean;
+  error: string | null;
+  detail: AgentDef | null;
+  sessions: AgentSession[];
   fetchList: () => Promise<void>;
+  fetchDetail: (id: string) => Promise<void>;
+  fetchSessions: () => Promise<void>;
+  create: (data: AgentCreateRequest) => Promise<AgentDef | null>;
+  update: (id: string, data: Partial<AgentCreateRequest>) => Promise<AgentDef | null>;
+  remove: (id: string) => Promise<boolean>;
 }
-
-// Mock data until backend agent service is ready
-const mockAgents: AgentDef[] = [
-  { id: '1', name: '申报书写作Agent', description: '根据项目基本信息生成完整的申报书', model: 'qwen-max', coordinationMode: 'GRAPH', skillCount: 4, kbCount: 2, status: 'ACTIVE' },
-  { id: '2', name: '立项评审Agent', description: '多维度评分+评审意见生成', model: 'qwen-plus', coordinationMode: 'REACT', skillCount: 2, kbCount: 1, status: 'ACTIVE' },
-  { id: '3', name: '合规审查Agent', description: '政策法规匹配与异常检测', model: 'deepseek-v3', coordinationMode: 'REACT', skillCount: 3, kbCount: 1, status: 'DRAFT' },
-];
 
 export const useAgentStore = create<AgentState>((set) => ({
   agents: [],
   loading: false,
+  error: null,
+  detail: null,
+  sessions: [],
   fetchList: async () => {
+    set({ loading: true, error: null });
+    const res = await listAgents();
+    set({ agents: res.success ? (res.data ?? []) : [], loading: false, error: res.error ?? null });
+  },
+  fetchDetail: async (id: string) => {
     set({ loading: true });
-    await new Promise((r) => setTimeout(r, 400));
-    set({ agents: mockAgents, loading: false });
+    const res = await getAgentById(id);
+    set({ detail: res.success ? (res.data ?? null) : null, loading: false });
+  },
+  fetchSessions: async () => {
+    set({ loading: true });
+    const res = await listAgentSessions();
+    set({ sessions: res.success ? (res.data ?? []) : [], loading: false });
+  },
+  create: async (data: AgentCreateRequest) => {
+    set({ loading: true });
+    const res = await createAgent(data);
+    if (res.success) {
+      set((s) => ({ agents: [...s.agents, res.data!], loading: false }));
+      return res.data;
+    }
+    set({ loading: false, error: res.error });
+    return null;
+  },
+  update: async (id: string, data: Partial<AgentCreateRequest>) => {
+    set({ loading: true });
+    const res = await updateAgent(id, data);
+    if (res.success) {
+      set((s) => ({
+        agents: s.agents.map((a) => (a.id === id ? { ...a, ...res.data } : a)),
+        detail: s.detail?.id === id ? { ...s.detail, ...res.data } : s.detail,
+        loading: false,
+      }));
+      return res.data;
+    }
+    set({ loading: false, error: res.error });
+    return null;
+  },
+  remove: async (id: string) => {
+    set({ loading: true });
+    const res = await deleteAgent(id);
+    if (res.success) {
+      set((s) => ({ agents: s.agents.filter((a) => a.id !== id), loading: false }));
+      return true;
+    }
+    set({ loading: false, error: res.error });
+    return false;
   },
 }));

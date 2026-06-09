@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.datang.aibase.skill.engine.GraalJsSandboxTest
+-------------------------------------------------------------------------------
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 4, Time elapsed: 0.188 s -- in com.datang.aibase.skill.engine.GraalJsSandboxTest

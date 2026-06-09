@@ -1,6 +1,15 @@
-// src/shared/api/knowledge.ts
 import client from './client';
 import type { ApiResponse } from './types';
+
+export type {
+  KbConfigInfo,
+  KbCreateRequest,
+  IngestRequest,
+  IngestResult,
+  SearchRequest,
+  SearchResult,
+  KnowledgeStats,
+} from './types';
 import type {
   KbConfigInfo,
   KbCreateRequest,

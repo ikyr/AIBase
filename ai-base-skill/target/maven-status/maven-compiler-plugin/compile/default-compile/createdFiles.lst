@@ -1,0 +1,17 @@
+com\datang\aibase\skill\entity\SkillVersion.class
+com\datang\aibase\skill\model\SkillInfo.class
+com\datang\aibase\skill\mapper\SkillVersionMapper.class
+com\datang\aibase\skill\controller\SkillController.class
+com\datang\aibase\skill\engine\GraalJsSandbox.class
+com\datang\aibase\skill\entity\SkillExecutionLog.class
+com\datang\aibase\skill\model\SkillDetail$SchemaField.class
+com\datang\aibase\skill\SkillApplication.class
+com\datang\aibase\skill\client\ModelGatewayClient.class
+com\datang\aibase\skill\mapper\SkillExecutionLogMapper.class
+com\datang\aibase\skill\mapper\SkillDefMapper.class
+com\datang\aibase\skill\model\SkillDetail$AgentRef.class
+com\datang\aibase\skill\model\SkillDetail.class
+com\datang\aibase\skill\entity\SkillDef.class
+com\datang\aibase\skill\service\SkillService.class
+com\datang\aibase\skill\model\SkillVersion.class
+com\datang\aibase\skill\service\impl\SkillServiceImpl.class

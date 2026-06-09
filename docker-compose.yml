@@ -1,0 +1,23 @@
+version: '3.8'
+
+# ====================================
+# AIBase — 一键部署全部服务
+#
+# 启动:  docker compose up -d
+# 停止:  docker compose down
+# 日志:  docker compose logs -f
+# ====================================
+
+include:
+  - docker-compose/infrastructure.yml
+  - docker-compose/app.yml
+
+services:
+  frontend:
+    build: ai-base-frontend
+    container_name: aibase-frontend
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+    restart: unless-stopped
+    depends_on:
+      - api-gateway

@@ -1,0 +1,14 @@
+D:\work\datang\AIBase\ai-base-model-gateway\src\main\java\com\datang\aibase\model\controller\ModelController.java
+D:\work\datang\AIBase\ai-base-model-gateway\src\main\java\com\datang\aibase\model\entity\ModelCallLog.java
+D:\work\datang\AIBase\ai-base-model-gateway\src\main\java\com\datang\aibase\model\entity\ModelConfig.java
+D:\work\datang\AIBase\ai-base-model-gateway\src\main\java\com\datang\aibase\model\entity\ModelRouteRule.java
+D:\work\datang\AIBase\ai-base-model-gateway\src\main\java\com\datang\aibase\model\mapper\ModelCallLogMapper.java
+D:\work\datang\AIBase\ai-base-model-gateway\src\main\java\com\datang\aibase\model\mapper\ModelConfigMapper.java
+D:\work\datang\AIBase\ai-base-model-gateway\src\main\java\com\datang\aibase\model\mapper\ModelRouteRuleMapper.java
+D:\work\datang\AIBase\ai-base-model-gateway\src\main\java\com\datang\aibase\model\ModelGatewayApplication.java
+D:\work\datang\AIBase\ai-base-model-gateway\src\main\java\com\datang\aibase\model\provider\DashScopeProvider.java
+D:\work\datang\AIBase\ai-base-model-gateway\src\main\java\com\datang\aibase\model\provider\ModelProvider.java
+D:\work\datang\AIBase\ai-base-model-gateway\src\main\java\com\datang\aibase\model\provider\OpenAIProvider.java
+D:\work\datang\AIBase\ai-base-model-gateway\src\main\java\com\datang\aibase\model\router\ModelRouter.java
+D:\work\datang\AIBase\ai-base-model-gateway\src\main\java\com\datang\aibase\model\service\impl\ModelServiceImpl.java
+D:\work\datang\AIBase\ai-base-model-gateway\src\main\java\com\datang\aibase\model\service\ModelService.java

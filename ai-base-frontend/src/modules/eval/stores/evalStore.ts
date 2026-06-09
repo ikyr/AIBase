@@ -1,31 +1,34 @@
-// src/modules/eval/stores/evalStore.ts
 import { create } from 'zustand';
-
-interface EvalDataset {
-  id: string;
-  name: string;
-  evalType: 'RAG' | 'AGENT';
-  itemCount: number;
-  createdAt: string;
-}
-
-const mockDatasets: EvalDataset[] = [
-  { id: '1', name: '申报书质量评估集', evalType: 'RAG', itemCount: 50, createdAt: '2026-05-20' },
-  { id: '2', name: 'Agent任务成功率测试集', evalType: 'AGENT', itemCount: 30, createdAt: '2026-05-25' },
-];
+import { listEvalDatasets, listEvalTasks, getEvalResults, type EvalDataset, type EvalTask, type EvalResult } from '../../../shared/api/eval';
 
 interface EvalState {
   datasets: EvalDataset[];
+  tasks: EvalTask[];
   loading: boolean;
+  results: EvalResult[];
   fetchList: () => Promise<void>;
+  fetchTasks: () => Promise<void>;
+  fetchResults: (taskId: string) => Promise<void>;
 }
 
 export const useEvalStore = create<EvalState>((set) => ({
   datasets: [],
+  tasks: [],
   loading: false,
+  results: [],
   fetchList: async () => {
     set({ loading: true });
-    await new Promise((r) => setTimeout(r, 300));
-    set({ datasets: mockDatasets, loading: false });
+    const res = await listEvalDatasets();
+    set({ datasets: res.success ? (res.data ?? []) : [], loading: false });
+  },
+  fetchTasks: async () => {
+    set({ loading: true });
+    const res = await listEvalTasks();
+    set({ tasks: res.success ? (res.data ?? []) : [], loading: false });
+  },
+  fetchResults: async (taskId: string) => {
+    set({ loading: true });
+    const res = await getEvalResults(taskId);
+    set({ results: res.success ? (res.data ?? []) : [], loading: false });
   },
 }));

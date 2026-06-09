@@ -1,0 +1,115 @@
+# Common application configuration for all services
+spring:
+  application:
+    name: ${SERVICE_NAME:ai-base}
+  config:
+    import: "optional:nacos:${spring.application.name}.yml"
+  datasource:
+    url: jdbc:postgresql://${PG_HOST:localhost}:${PG_PORT:5432}/${PG_DB:aibase}
+    username: ${PG_USER:aibase}
+    password: ${PG_PASSWORD:aibase}
+    driver-class-name: org.postgresql.Driver
+    druid:
+      initial-size: 5
+      min-idle: 5
+      max-active: 20
+      max-wait: 60000
+      time-between-eviction-runs-millis: 60000
+      min-evictable-idle-time-millis: 300000
+      validation-query: SELECT 1
+      test-while-idle: true
+      test-on-borrow: false
+      test-on-return: false
+mybatis:
+  mapper-locations: classpath:mapper/**/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+    default-enum-type-handler: org.apache.ibatis.type.EnumTypeHandler
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:aibase_redis_change_me}
+      timeout: 3000ms
+      lettuce:
+        pool:
+          max-active: 20
+          max-idle: 10
+          min-idle: 5
+  cloud:
+    nacos:
+      discovery:
+        enabled: false
+        server-addr: ${NACOS_SERVER:localhost:8848}
+        namespace: ${NACOS_NAMESPACE:}
+      config:
+        server-addr: ${NACOS_SERVER:localhost:8848}
+        namespace: ${NACOS_NAMESPACE:}
+        file-extension: yml
+  rocketmq:
+    name-server: ${ROCKETMQ_NAMESRV:localhost:9876}
+    producer:
+      group: ${SERVICE_NAME:ai-base}-producer
+    consumer:
+      group: ${SERVICE_NAME:ai-base}-consumer
+
+# Milvus
+milvus:
+  host: ${MILVUS_HOST:localhost}
+  port: ${MILVUS_PORT:19530}
+  username: ${MILVUS_USERNAME:}
+  password: ${MILVUS_PASSWORD:}
+
+# Security
+aibase:
+  security:
+    keys:
+      - "aibase-dev-key-2024"
+
+# Observability
+observability:
+  logging:
+    enabled: true
+    level: INFO
+    format: json
+  tracing:
+    enabled: true
+    endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4317}
+    sampler: parentbased_traceidratio
+    sample-rate: 1.0
+
+# Knowledge base default config
+knowledge:
+  repository:
+    type: milvus
+  chunk:
+    size: 800
+    overlap: 100
+  embedding:
+    model: ${EMBEDDING_MODEL:text-embedding-v3}
+
+# AI Model defaults
+model:
+  default-provider: dashscope
+  dashscope:
+    api-key: ${DASHSCOPE_API_KEY:}
+  openai:
+    api-key: ${OPENAI_API_KEY:}
+
+# Server
+server:
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  otlp:
+    tracing:
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4317}
+  metrics:
+    export:
+      prometheus:
+        enabled: true

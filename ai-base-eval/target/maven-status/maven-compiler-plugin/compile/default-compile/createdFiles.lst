@@ -1,0 +1,17 @@
+com\datang\aibase\eval\entity\EvalDatasetItem.class
+com\datang\aibase\eval\mapper\EvalTaskMapper.class
+com\datang\aibase\eval\entity\EvalTask.class
+com\datang\aibase\eval\engine\EvalExecutor.class
+com\datang\aibase\eval\engine\EvalExecutor$1.class
+com\datang\aibase\eval\entity\EvalDataset.class
+com\datang\aibase\eval\EvalApplication.class
+com\datang\aibase\eval\mapper\EvalDatasetMapper.class
+com\datang\aibase\eval\entity\AnnotationRecord.class
+com\datang\aibase\eval\service\impl\EvalServiceImpl.class
+com\datang\aibase\eval\controller\EvalController.class
+com\datang\aibase\eval\mapper\EvalDatasetItemMapper.class
+com\datang\aibase\eval\mapper\AnnotationRecordMapper.class
+com\datang\aibase\eval\mapper\EvalResultMapper.class
+com\datang\aibase\eval\service\EvalService.class
+com\datang\aibase\eval\entity\EvalResult.class
+com\datang\aibase\eval\engine\MetricCalculator.class
