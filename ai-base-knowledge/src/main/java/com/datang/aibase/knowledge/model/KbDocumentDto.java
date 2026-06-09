@@ -1,6 +1,6 @@
 package com.datang.aibase.knowledge.model;
 
-public class KbDocument {
+public class KbDocumentDto {
     private String id;
     private String kbId;
     private String fileName;

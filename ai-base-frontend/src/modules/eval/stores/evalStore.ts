@@ -4,8 +4,9 @@ import { listEvalDatasets, listEvalTasks, getEvalResults, type EvalDataset, type
 interface EvalState {
   datasets: EvalDataset[];
   tasks: EvalTask[];
-  loading: boolean;
   results: EvalResult[];
+  loading: boolean;
+  error: string | null;
   fetchList: () => Promise<void>;
   fetchTasks: () => Promise<void>;
   fetchResults: (taskId: string) => Promise<void>;
@@ -14,21 +15,40 @@ interface EvalState {
 export const useEvalStore = create<EvalState>((set) => ({
   datasets: [],
   tasks: [],
-  loading: false,
   results: [],
+  loading: false,
+  error: null,
   fetchList: async () => {
-    set({ loading: true });
-    const res = await listEvalDatasets();
-    set({ datasets: res.success ? (res.data ?? []) : [], loading: false });
+    set({ loading: true, error: null });
+    try {
+      const res = await listEvalDatasets();
+      if (!res.success) throw new Error(res.error || 'Failed to fetch datasets');
+      set({ datasets: res.data ?? [], loading: false });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      set({ error: message, loading: false });
+    }
   },
   fetchTasks: async () => {
-    set({ loading: true });
-    const res = await listEvalTasks();
-    set({ tasks: res.success ? (res.data ?? []) : [], loading: false });
+    set({ loading: true, error: null });
+    try {
+      const res = await listEvalTasks();
+      if (!res.success) throw new Error(res.error || 'Failed to fetch tasks');
+      set({ tasks: res.data ?? [], loading: false });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      set({ error: message, loading: false });
+    }
   },
   fetchResults: async (taskId: string) => {
-    set({ loading: true });
-    const res = await getEvalResults(taskId);
-    set({ results: res.success ? (res.data ?? []) : [], loading: false });
+    set({ loading: true, error: null });
+    try {
+      const res = await getEvalResults(taskId);
+      if (!res.success) throw new Error(res.error || 'Failed to fetch results');
+      set({ results: res.data ?? [], loading: false });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      set({ error: message, loading: false });
+    }
   },
 }));

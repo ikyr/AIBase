@@ -32,7 +32,7 @@ public class KbController {
     }
 
     @GetMapping("/kb/{id}/documents")
-    public ApiResponse<List<com.datang.aibase.knowledge.model.KbDocument>> getDocuments(@PathVariable String id) {
+    public ApiResponse<List<com.datang.aibase.knowledge.model.KbDocumentDto>> getDocuments(@PathVariable String id) {
         return ApiResponse.ok(kbService.getDocuments(id));
     }
 

@@ -8,7 +8,7 @@ import java.util.Map;
 public interface KbService {
     List<KbInfo> listAll();
     KbInfo getById(String id);
-    List<com.datang.aibase.knowledge.model.KbDocument> getDocuments(String kbId);
+    List<com.datang.aibase.knowledge.model.KbDocumentDto> getDocuments(String kbId);
     KbInfo create(String name, String description);
     KbInfo create(String name, String description, String kbType, int chunkSize, int chunkOverlap);
     KbDocument ingest(String kbId, String title, String content, String sourceType, String fileType);

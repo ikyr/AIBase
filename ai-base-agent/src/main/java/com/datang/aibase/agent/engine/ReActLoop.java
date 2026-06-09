@@ -109,7 +109,9 @@ public class ReActLoop {
                             "parameters", params,
                             "result", observation
                     )));
-                } catch (Exception ignored) {}
+                } catch (Exception e) {
+                    log.debug("Failed to serialize tool call metadata: {}", e.getMessage());
+                }
                 newMessages.add(toolMsg);
 
                 messages.add(Map.of("role", "assistant", "content",
@@ -161,10 +163,13 @@ public class ReActLoop {
         String[] lines = text.split("\n");
         for (String line : lines) {
             String trimmed = line.trim();
-            if (trimmed.toLowerCase().startsWith("thought:")) {
-                thought = trimmed.substring(8).trim();
-            } else if (trimmed.toLowerCase().startsWith("action:")) {
-                String actionStr = trimmed.substring(7).trim();
+            String lower = trimmed.toLowerCase();
+            if (lower.startsWith("thought:") || lower.startsWith("thought：")) {
+                int idx = Math.max(trimmed.indexOf(':'), trimmed.indexOf('：'));
+                thought = trimmed.substring(idx + 1).trim();
+            } else if (lower.startsWith("action:") || lower.startsWith("action：")) {
+                int idx = Math.max(trimmed.indexOf(':'), trimmed.indexOf('：'));
+                String actionStr = trimmed.substring(idx + 1).trim();
                 int pipeIdx = actionStr.indexOf('|');
                 if (pipeIdx > 0) {
                     action = actionStr.substring(0, pipeIdx).trim();
@@ -173,8 +178,9 @@ public class ReActLoop {
                 } else {
                     action = actionStr;
                 }
-            } else if (trimmed.toLowerCase().startsWith("final answer:")) {
-                finalAnswer = trimmed.substring(13).trim();
+            } else if (lower.startsWith("final answer:") || lower.startsWith("final answer：")) {
+                int idx = Math.max(trimmed.indexOf(':'), trimmed.indexOf('：'));
+                finalAnswer = trimmed.substring(idx + 1).trim();
             }
         }
 

@@ -38,7 +38,7 @@ public final class SnowflakeIdGenerator {
     private synchronized long nextIdLong() {
         long timestamp = System.currentTimeMillis();
         if (timestamp < lastTimestamp) {
-            throw new RuntimeException("Clock moved backwards, refusing to generate id");
+            throw new ClockMovedBackwardsException(lastTimestamp, timestamp);
         }
         if (lastTimestamp == timestamp) {
             sequence = (sequence + 1) & SEQUENCE_MASK;

@@ -4,10 +4,10 @@
 
 set -e
 
-SERVER="10.139.11.100"
-SERVER_USER="root"
-SERVER_PASSWORD="Dt1q2w3e4r!"
-SERVER_DIR="/u01/aibase"
+SERVER="${DEPLOY_SERVER:?}"
+SERVER_USER="${DEPLOY_USER:?}"
+SERVER_PASSWORD="${DEPLOY_PASSWORD:?}"
+SERVER_DIR="${DEPLOY_DIR:/u01/aibase}"
 NODE_SSH="node .ssh-exec.js"
 NODE_SCP="node .scp.js"
 
@@ -63,12 +63,12 @@ echo ""
 echo "=== Step 5: Create .env file ==="
 $NODE_SSH "$SERVER" "
   mkdir -p $SERVER_DIR/docker-compose && \
-  cat > $SERVER_DIR/docker-compose/.env << 'ENVEOF'
-# ---- 基础设施密码 ----
-PG_PASSWORD=aibase_change_me
-REDIS_PASSWORD=aibase_redis_change_me
-MINIO_ROOT_PASSWORD=minioadmin_change_me
-GRAFANA_PASSWORD=admin_change_me
+  cat > $SERVER_DIR/docker-compose/.env << ENVEOF
+# ---- 基础设施密码（必须设置） ----
+PG_PASSWORD=${PG_PASSWORD:?}
+REDIS_PASSWORD=${REDIS_PASSWORD:?}
+MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:?}
+GRAFANA_PASSWORD=${GRAFANA_PASSWORD:?}
 
 # ---- PostgreSQL ----
 PG_HOST=postgres
@@ -97,7 +97,7 @@ ROCKETMQ_NAMESRV=rocketmq-namesrv:9876
 OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4317
 
 # ---- AI 模型 ----
-DASHSCOPE_API_KEY=sk-31d1fec50d20466e9081816ce8f853a1
+DASHSCOPE_API_KEY=\${DASHSCOPE_API_KEY:?}
 OPENAI_API_KEY=
 EMBEDDING_MODEL=text-embedding-v3
 

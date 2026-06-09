@@ -1,5 +1,5 @@
-// src/modules/chat/stores/chatStore.ts
 import { create } from 'zustand';
+import { post } from '@/shared/api/client';
 
 export interface Message {
   id: string;
@@ -20,6 +20,7 @@ interface ChatState {
   activeSessionId: string | null;
   messages: Message[];
   loading: boolean;
+  error: string | null;
   createSession: () => void;
   switchSession: (id: string) => void;
   sendMessage: (content: string) => Promise<void>;
@@ -32,6 +33,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   activeSessionId: null,
   messages: [],
   loading: false,
+  error: null,
 
   createSession: () => {
     const id = `session-${nextId++}`;
@@ -45,11 +47,12 @@ export const useChatStore = create<ChatState>((set, get) => ({
       sessions: [session, ...s.sessions],
       activeSessionId: id,
       messages: [],
+      error: null,
     }));
   },
 
   switchSession: (id: string) => {
-    set({ activeSessionId: id, messages: [] });
+    set({ activeSessionId: id, messages: [], error: null });
   },
 
   sendMessage: async (content: string) => {
@@ -63,26 +66,37 @@ export const useChatStore = create<ChatState>((set, get) => ({
       timestamp: Date.now(),
     };
 
-    set({ messages: [...messages, userMsg], loading: true });
+    set({ messages: [...messages, userMsg], loading: true, error: null });
 
-    // Simulate AI response (real API call when backend ready)
-    await new Promise((r) => setTimeout(r, 800));
+    try {
+      const response = await post<{ reply: string }>('/agent/chat', {
+        sessionId: activeSessionId,
+        message: content,
+      });
 
-    const aiMsg: Message = {
-      id: `msg-${nextId++}`,
-      role: 'assistant',
-      content: `收到你的消息：「${content}」。当前为模拟回复，后端 Agent 服务接入后将返回真实 AI 响应。`,
-      timestamp: Date.now(),
-    };
+      if (!response.success) {
+        throw new Error(response.error || 'Agent returned an error');
+      }
 
-    set((s) => ({
-      messages: [...s.messages, aiMsg],
-      loading: false,
-      sessions: s.sessions.map((sess) =>
-        sess.id === activeSessionId
-          ? { ...sess, lastMessage: content, updatedAt: Date.now(), title: content.slice(0, 20) }
-          : sess
-      ),
-    }));
+      const aiMsg: Message = {
+        id: `msg-${nextId++}`,
+        role: 'assistant',
+        content: response.data?.reply ?? '未收到回复',
+        timestamp: Date.now(),
+      };
+
+      set((s) => ({
+        messages: [...s.messages, aiMsg],
+        loading: false,
+        sessions: s.sessions.map((sess) =>
+          sess.id === activeSessionId
+            ? { ...sess, lastMessage: content, updatedAt: Date.now(), title: content.slice(0, 20) }
+            : sess
+        ),
+      }));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : '发送消息失败';
+      set({ loading: false, error: message });
+    }
   },
 }));

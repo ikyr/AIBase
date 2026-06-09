@@ -10,6 +10,7 @@ interface PlatformState {
   prompts: PromptVersion[];
   approvals: ApprovalRecord[];
   loading: boolean;
+  error: string | null;
   fetchPrompts: () => Promise<void>;
   fetchApprovals: () => Promise<void>;
 }
@@ -18,15 +19,28 @@ export const usePlatformStore = create<PlatformState>((set) => ({
   prompts: [],
   approvals: [],
   loading: false,
+  error: null,
   fetchPrompts: async () => {
-    set({ loading: true });
-    const res = await listPrompts();
-    set({ prompts: res.success ? (res.data ?? []) : [], loading: false });
+    set({ loading: true, error: null });
+    try {
+      const res = await listPrompts();
+      if (!res.success) throw new Error(res.error || 'Failed to fetch prompts');
+      set({ prompts: res.data ?? [], loading: false });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      set({ error: message, loading: false });
+    }
   },
   fetchApprovals: async () => {
-    set({ loading: true });
-    const res = await listApprovals();
-    set({ approvals: res.success ? (res.data ?? []) : [], loading: false });
+    set({ loading: true, error: null });
+    try {
+      const res = await listApprovals();
+      if (!res.success) throw new Error(res.error || 'Failed to fetch approvals');
+      set({ approvals: res.data ?? [], loading: false });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      set({ error: message, loading: false });
+    }
   },
 }));
 export { typeLabel, typeColor, statusLabel, statusColor };

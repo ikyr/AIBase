@@ -13,10 +13,10 @@ x-java-defaults: &java-defaults
     PG_PORT: ${PG_PORT:-5432}
     PG_DB: ${PG_DB:-aibase}
     PG_USER: ${PG_USER:-aibase}
-    PG_PASSWORD: ${PG_PASSWORD:-aibase}
+    PG_PASSWORD: ${PG_PASSWORD:?}
     REDIS_HOST: ${REDIS_HOST:-redis}
     REDIS_PORT: ${REDIS_PORT:-6379}
-    REDIS_PASSWORD: ${REDIS_PASSWORD:-aibase_redis_change_me}
+    REDIS_PASSWORD: ${REDIS_PASSWORD:?}
     NACOS_SERVER: ${NACOS_SERVER:-nacos:8848}
     MILVUS_HOST: ${MILVUS_HOST:-milvus}
     MILVUS_PORT: ${MILVUS_PORT:-19530}

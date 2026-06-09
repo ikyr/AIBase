@@ -66,10 +66,10 @@ public class KbServiceImpl implements KbService {
     }
 
     @Override
-    public List<com.datang.aibase.knowledge.model.KbDocument> getDocuments(String kbId) {
+    public List<com.datang.aibase.knowledge.model.KbDocumentDto> getDocuments(String kbId) {
         List<com.datang.aibase.knowledge.entity.KbDocument> docs = documentMapper.selectByKbId(kbId);
         return docs.stream().map(d -> {
-            com.datang.aibase.knowledge.model.KbDocument md = new com.datang.aibase.knowledge.model.KbDocument();
+            com.datang.aibase.knowledge.model.KbDocumentDto md = new com.datang.aibase.knowledge.model.KbDocumentDto();
             md.setId(d.getId());
             md.setKbId(d.getKbId());
             md.setFileName(d.getTitle());

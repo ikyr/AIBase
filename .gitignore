@@ -6,3 +6,6 @@ dist/
 .DS_Store
 .env
 docker-compose/.env
+target/
+*.jar
+*.class

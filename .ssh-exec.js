@@ -28,10 +28,18 @@ conn.on('ready', () => {
   process.exit(1);
 });
 
+const username = process.env.DEPLOY_USER || 'root';
+const password = process.env.DEPLOY_PASSWORD;
+
+if (!password) {
+  console.error('DEPLOY_PASSWORD env var is required');
+  process.exit(1);
+}
+
 conn.connect({
   host,
   port: 22,
-  username: 'root',
-  password: 'Dt1q2w3e4r!',
+  username,
+  password,
   readyTimeout: 10000,
 });

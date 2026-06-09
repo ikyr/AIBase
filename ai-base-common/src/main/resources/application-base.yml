@@ -7,7 +7,7 @@ spring:
   datasource:
     url: jdbc:postgresql://${PG_HOST:localhost}:${PG_PORT:5432}/${PG_DB:aibase}
     username: ${PG_USER:aibase}
-    password: ${PG_PASSWORD:aibase}
+    password: ${PG_PASSWORD:}
     driver-class-name: org.postgresql.Driver
     druid:
       initial-size: 5
@@ -30,7 +30,7 @@ mybatis:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:aibase_redis_change_me}
+      password: ${REDIS_PASSWORD:}
       timeout: 3000ms
       lettuce:
         pool:
@@ -65,7 +65,7 @@ milvus:
 aibase:
   security:
     keys:
-      - "aibase-dev-key-2024"
+      - ${AIBASE_API_KEY:}
 
 # Observability
 observability:
