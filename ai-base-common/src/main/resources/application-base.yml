@@ -64,8 +64,7 @@ milvus:
 # Security
 aibase:
   security:
-    keys:
-      - ${AIBASE_API_KEY:}
+    keys: ${AIBASE_API_KEYS:}
 
 # Observability
 observability:

@@ -20,4 +20,5 @@ D:\work\datang\AIBase\ai-base-common\src\main\java\com\datang\aibase\common\secu
 D:\work\datang\AIBase\ai-base-common\src\main\java\com\datang\aibase\common\security\PromptInjectionDetector.java
 D:\work\datang\AIBase\ai-base-common\src\main\java\com\datang\aibase\common\security\PropertiesApiKeyStore.java
 D:\work\datang\AIBase\ai-base-common\src\main\java\com\datang\aibase\common\security\SensitiveDataMasker.java
+D:\work\datang\AIBase\ai-base-common\src\main\java\com\datang\aibase\common\util\ClockMovedBackwardsException.java
 D:\work\datang\AIBase\ai-base-common\src\main\java\com\datang\aibase\common\util\SnowflakeIdGenerator.java

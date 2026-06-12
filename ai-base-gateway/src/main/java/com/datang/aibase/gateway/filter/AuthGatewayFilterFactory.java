@@ -30,13 +30,17 @@ public class AuthGatewayFilterFactory extends AbstractGatewayFilterFactory<AuthG
             var request = exchange.getRequest();
             String apiKey = request.getHeaders().getFirst(API_KEY_HEADER);
 
+            if (validKeys.isEmpty()) {
+                return chain.filter(exchange);
+            }
+
             if (apiKey == null || apiKey.isBlank()) {
                 log.warn("Missing X-Api-Key header for request: {} {}", request.getMethod(), request.getURI().getPath());
                 exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
                 return exchange.getResponse().setComplete();
             }
 
-            if (!validKeys.isEmpty() && !validKeys.contains(apiKey)) {
+            if (!validKeys.contains(apiKey)) {
                 log.warn("Invalid X-Api-Key for request: {} {}", request.getMethod(), request.getURI().getPath());
                 exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
                 return exchange.getResponse().setComplete();

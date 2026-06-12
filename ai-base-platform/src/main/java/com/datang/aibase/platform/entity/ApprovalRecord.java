@@ -11,6 +11,8 @@ public class ApprovalRecord extends BaseEntity {
     private String approvers;
     private String status = "PENDING";
     private String reason;
+    private Integer chainStep;
+    private Integer totalSteps;
 
     public String getType() { return type; }
     public void setType(String type) { this.type = type; }
@@ -28,4 +30,8 @@ public class ApprovalRecord extends BaseEntity {
     public void setStatus(String status) { this.status = status; }
     public String getReason() { return reason; }
     public void setReason(String reason) { this.reason = reason; }
+    public Integer getChainStep() { return chainStep; }
+    public void setChainStep(Integer chainStep) { this.chainStep = chainStep; }
+    public Integer getTotalSteps() { return totalSteps; }
+    public void setTotalSteps(Integer totalSteps) { this.totalSteps = totalSteps; }
 }

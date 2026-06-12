@@ -154,6 +154,9 @@ public class WorkflowExecutor {
             case "CODE" -> executeCodeNode(node, context);
             case "WAIT" -> executeWaitNode(node, context);
             case "KNOWLEDGE" -> executeKnowledgeNode(node, context);
+            case "QUESTION_CLASSIFIER" -> executeQuestionClassifierNode(node, context);
+            case "VARIABLE_ASSIGNER" -> executeVariableAssignerNode(node, context);
+            case "HTTP_REQUEST" -> executeHttpRequestNode(node, context);
             default -> Map.of("node", node.name(), "type", node.type(), "status", "executed");
         };
     }
@@ -613,5 +616,127 @@ public class WorkflowExecutor {
             }
         }
         return s;
+    }
+
+    // ---- QUESTION_CLASSIFIER node ----
+
+    private Map<String, Object> executeQuestionClassifierNode(DagParser.ParsedNode node, Map<String, Object> ctx) {
+        Map<String, Object> config = node.config();
+        String input = resolveTemplate(config.getOrDefault("input", "{{query}}").toString(), ctx);
+        String classesStr = config.getOrDefault("classes", "").toString();
+        String[] classes = classesStr.isEmpty() ? new String[0] : classesStr.split(",");
+
+        String prompt = "Classify the following input into exactly one of these categories: "
+                + String.join(", ", classes)
+                + ".\\n\\nInput: " + input
+                + "\\n\\nRespond with ONLY the category name, nothing else.";
+
+        String model = config.getOrDefault("model", "qwen-plus").toString();
+        String response = modelGatewayClient.chat(prompt, model);
+
+        String category = response != null ? response.trim() : "unknown";
+        double confidence = 1.0;
+        for (String cls : classes) {
+            if (category.toLowerCase().contains(cls.toLowerCase().trim())) {
+                category = cls.trim();
+                confidence = 0.9;
+                break;
+            }
+        }
+
+        Map<String, Object> result = new java.util.LinkedHashMap<>();
+        result.put("category", category);
+        result.put("confidence", confidence);
+        result.put("input", input);
+        ctx.put("classification", result);
+        return result;
+    }
+
+    // ---- VARIABLE_ASSIGNER node ----
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> executeVariableAssignerNode(DagParser.ParsedNode node, Map<String, Object> ctx) {
+        Map<String, Object> config = node.config();
+        String assignmentsStr = config.getOrDefault("assignments", "[]").toString();
+        java.util.List<Map<String, Object>> assignments;
+        try {
+            assignments = mapper.readValue(assignmentsStr, java.util.List.class);
+        } catch (Exception e) {
+            assignments = java.util.List.of();
+        }
+
+        java.util.List<String> assigned = new java.util.ArrayList<>();
+        for (Object obj : assignments) {
+            if (obj instanceof Map<?, ?> m) {
+                Object v = m.get("variable");
+                String varName = v != null ? String.valueOf(v) : "";
+                Object value = m.get("value");
+                Object t = m.get("type");
+                String type = t != null ? String.valueOf(t) : "string";
+                if (!varName.isEmpty()) {
+                    Object converted = switch (type.toLowerCase()) {
+                        case "number", "int", "integer" -> value instanceof Number ? value : Double.parseDouble(String.valueOf(value));
+                        case "boolean", "bool" -> Boolean.parseBoolean(String.valueOf(value));
+                        default -> String.valueOf(value);
+                    };
+                    ctx.put(varName, converted);
+                    assigned.add(varName);
+                }
+            }
+        }
+
+        Map<String, Object> result = new java.util.LinkedHashMap<>();
+        result.put("assigned", assigned);
+        result.put("count", assigned.size());
+        return result;
+    }
+
+    // ---- HTTP_REQUEST node ----
+
+    private Map<String, Object> executeHttpRequestNode(DagParser.ParsedNode node, Map<String, Object> ctx) {
+        Map<String, Object> config = node.config();
+        String url = resolveTemplate(config.getOrDefault("url", "").toString(), ctx);
+        String method = config.getOrDefault("method", "GET").toString().toUpperCase();
+        String headersStr = config.getOrDefault("headers", "{}").toString();
+        String body = config.getOrDefault("body", "").toString();
+
+        if (url.isEmpty()) {
+            return Map.of("error", "URL is required for HTTP_REQUEST node");
+        }
+
+        try {
+            java.util.Map<String, String> headers = new java.util.LinkedHashMap<>();
+            try {
+                java.util.Map<String, Object> hdrs = mapper.readValue(headersStr, java.util.Map.class);
+                for (var entry : hdrs.entrySet()) {
+                    headers.put(entry.getKey(), String.valueOf(entry.getValue()));
+                }
+            } catch (Exception ignored) {}
+
+            var request = java.net.http.HttpRequest.newBuilder()
+                    .uri(java.net.URI.create(url));
+            headers.forEach(request::header);
+
+            String resolvedBody = resolveTemplate(body, ctx);
+            if (!resolvedBody.isEmpty() && ("POST".equals(method) || "PUT".equals(method) || "PATCH".equals(method))) {
+                request.method(method, java.net.http.HttpRequest.BodyPublishers.ofString(resolvedBody));
+                if (!headers.containsKey("Content-Type")) {
+                    request.header("Content-Type", "application/json");
+                }
+            } else {
+                request.method(method, java.net.http.HttpRequest.BodyPublishers.noBody());
+            }
+
+            var client = java.net.http.HttpClient.newHttpClient();
+            var response = client.send(request.build(), java.net.http.HttpResponse.BodyHandlers.ofString());
+
+            Map<String, Object> result = new java.util.LinkedHashMap<>();
+            result.put("status", response.statusCode());
+            result.put("body", response.body());
+            result.put("url", url);
+            return result;
+        } catch (Exception e) {
+            return Map.of("error", "HTTP request failed: " + e.getMessage(), "url", url);
+        }
     }
 }

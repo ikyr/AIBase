@@ -12,6 +12,9 @@ const typeStyle: Record<string, { bg: string; border: string; color: string }> =
   LLM_CALL:  { bg: '#f0f5ff', border: '#2f54eb', color: '#1d39c4' },
   CODE:      { bg: '#262626', border: '#434343', color: '#d9d9d9' },
   WAIT:      { bg: '#fff7e6', border: '#d48806', color: '#ad6800' },
+  QUESTION_CLASSIFIER: { bg: '#fff0f6', border: '#eb2f96', color: '#c41d7f' },
+  VARIABLE_ASSIGNER:   { bg: '#fffbe6', border: '#faad14', color: '#d48806' },
+  HTTP_REQUEST:        { bg: '#fff2e8', border: '#fa541c', color: '#d4380d' },
 };
 
 export interface WorkflowNodeData {

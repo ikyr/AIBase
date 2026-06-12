@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { listKb, createKb, type KbConfigInfo, type KbCreateRequest } from '../../../shared/api/knowledge';
+import { listKb, createKb, searchKb, type KbConfigInfo, type KbCreateRequest, type SearchResults } from '../../../shared/api/knowledge';
 
 interface KnowledgeState {
   kbs: KbConfigInfo[];
@@ -9,6 +9,12 @@ interface KnowledgeState {
   fetchList: () => Promise<void>;
   fetchDetail: (id: string) => Promise<void>;
   create: (req: KbCreateRequest) => Promise<void>;
+  // Search
+  searchResults: SearchResults;
+  searching: boolean;
+  searchError: string | null;
+  search: (kbId: string, query: string, topK?: number, strategy?: 'VECTOR' | 'KEYWORD' | 'HYBRID') => Promise<void>;
+  clearSearch: () => void;
 }
 
 export const useKnowledgeStore = create<KnowledgeState>((set) => ({
@@ -16,6 +22,10 @@ export const useKnowledgeStore = create<KnowledgeState>((set) => ({
   loading: false,
   error: null,
   detail: null,
+  searchResults: [],
+  searching: false,
+  searchError: null,
+
   fetchList: async () => {
     set({ loading: true, error: null });
     const res = await listKb();
@@ -39,4 +49,16 @@ export const useKnowledgeStore = create<KnowledgeState>((set) => ({
       set({ loading: false, error: res.error ?? '创建失败' });
     }
   },
+
+  search: async (kbId: string, query: string, topK = 10, strategy = 'HYBRID') => {
+    set({ searching: true, searchError: null });
+    const res = await searchKb({ kbId, query, topK, strategy });
+    if (res.success) {
+      set({ searchResults: res.data ?? [], searching: false });
+    } else {
+      set({ searchResults: [], searching: false, searchError: res.error ?? '搜索失败' });
+    }
+  },
+
+  clearSearch: () => set({ searchResults: [], searchError: null }),
 }));

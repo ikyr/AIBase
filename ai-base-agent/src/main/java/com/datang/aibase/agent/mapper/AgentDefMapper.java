@@ -23,4 +23,13 @@ public interface AgentDefMapper {
             "#{skillIds}, #{kbIds}, #{coordinationMode}, #{constraints}, " +
             "#{status}, #{createdAt}, #{updatedAt}, #{createdBy}, #{updatedBy})")
     int insert(AgentDef entity);
+
+    @Update("UPDATE agent_def SET name = #{name}, description = #{description}, " +
+            "system_prompt = #{systemPrompt}, model = #{model}, tools = #{tools}, " +
+            "skill_ids = #{skillIds}, kb_ids = #{kbIds}, coordination_mode = #{coordinationMode}, " +
+            "constraints = #{constraints}, updated_at = NOW() WHERE id = #{id}")
+    int update(AgentDef entity);
+
+    @Update("UPDATE agent_def SET status = 'DELETED', updated_at = NOW() WHERE id = #{id}")
+    int softDelete(String id);
 }

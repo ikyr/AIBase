@@ -61,6 +61,20 @@ public class ModelServiceImpl implements ModelService {
     }
 
     @Override
+    public ModelConfig update(String id, ModelConfig config) {
+        config.setId(id);
+        config.setUpdatedAt(java.time.LocalDateTime.now());
+        configMapper.update(config);
+        return configMapper.selectById(id);
+    }
+
+    @Override
+    public void delete(String id) {
+        configMapper.softDelete(id);
+        log.info("Deleted model: {}", id);
+    }
+
+    @Override
     public List<ModelRouteRule> listRules() {
         return ruleMapper.selectActive();
     }

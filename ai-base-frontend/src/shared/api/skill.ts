@@ -58,29 +58,29 @@ export interface SkillExecutionLog {
 }
 
 export function listSkills(): Promise<ApiResponse<SkillDef[]>> {
-  return get<SkillDef[]>('skill', '/skill');
+  return get<SkillDef[]>('/skill');
 }
 
 export function getSkillById(id: string): Promise<ApiResponse<SkillDef>> {
-  return get<SkillDef>('skill', `/skill/${id}`);
+  return get<SkillDef>(`/skill/${id}`);
 }
 
 export function getSkillVersions(id: string): Promise<ApiResponse<SkillVersion[]>> {
-  return get<SkillVersion[]>('skill', `/skill/${id}/versions`);
+  return get<SkillVersion[]>(`/skill/${id}/versions`);
 }
 
 export function listSkillLogs(): Promise<ApiResponse<SkillExecutionLog[]>> {
-  return get<SkillExecutionLog[]>('skill', '/skill/logs');
+  return get<SkillExecutionLog[]>('/skill/logs');
 }
 
 export function createSkill(data: SkillCreateRequest): Promise<ApiResponse<SkillDef>> {
-  return post<SkillDef>('skill', '/skill', data);
+  return post<SkillDef>('/skill', data);
 }
 
 export function updateSkill(id: string, data: Partial<SkillCreateRequest>): Promise<ApiResponse<SkillDef>> {
-  return post<SkillDef>('skill', `/skill/${id}`, data);
+  return post<SkillDef>(`/skill/${id}`, data);
 }
 
 export function deleteSkill(id: string): Promise<ApiResponse<null>> {
-  return del<null>('skill', `/skill/${id}`);
+  return del<null>(`/skill/${id}`);
 }

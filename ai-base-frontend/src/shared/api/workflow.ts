@@ -58,29 +58,29 @@ export interface DagEdge {
 }
 
 export function listWorkflows(): Promise<ApiResponse<WfDefinition[]>> {
-  return get<WfDefinition[]>('workflow', '/workflow');
+  return get<WfDefinition[]>('/workflow');
 }
 
 export function getWorkflowById(id: string): Promise<ApiResponse<WfDefinition>> {
-  return get<WfDefinition>('workflow', `/workflow/${id}`);
+  return get<WfDefinition>(`/workflow/${id}`);
 }
 
 export function getWorkflowDag(id: string): Promise<ApiResponse<DagView>> {
-  return get<DagView>('workflow', `/workflow/${id}/dag`);
+  return get<DagView>(`/workflow/${id}/dag`);
 }
 
 export function listWorkflowInstances(): Promise<ApiResponse<WfInstance[]>> {
-  return get<WfInstance[]>('workflow', '/workflow/instances');
+  return get<WfInstance[]>('/workflow/instances');
 }
 
 export function createWorkflow(data: WfCreateRequest): Promise<ApiResponse<WfDefinition>> {
-  return post<WfDefinition>('workflow', '/workflow', data);
+  return post<WfDefinition>('/workflow', data);
 }
 
 export function updateWorkflow(id: string, data: Partial<WfCreateRequest>): Promise<ApiResponse<WfDefinition>> {
-  return post<WfDefinition>('workflow', `/workflow/${id}`, data);
+  return post<WfDefinition>(`/workflow/${id}`, data);
 }
 
 export function deleteWorkflow(id: string): Promise<ApiResponse<null>> {
-  return del<null>('workflow', `/workflow/${id}`);
+  return del<null>(`/workflow/${id}`);
 }

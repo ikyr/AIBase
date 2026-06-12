@@ -21,9 +21,9 @@ export interface SendResponse {
 }
 
 export function listChatSessions(): Promise<ApiResponse<ChatSession[]>> {
-  return get<ChatSession[]>('chat', '/chat/sessions');
+  return get<ChatSession[]>('/chat/sessions');
 }
 
 export function sendMessage(message: string): Promise<ApiResponse<SendResponse>> {
-  return post<SendResponse>('chat', '/chat/send', { message });
+  return post<SendResponse>('/chat/send', { message });
 }

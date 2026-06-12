@@ -37,7 +37,7 @@ public class EvalExecutor {
                         EvalResultMapper resultMapper,
                         EvalDatasetItemMapper itemMapper,
                         @Value("${knowledge.url:http://localhost:8101}") String knowledgeUrl,
-                        @Value("${agent.url:http://localhost:8104}") String agentUrl,
+                        @Value("${agent.url:http://localhost:8105}") String agentUrl,
                         @Value("${skill.url:http://localhost:8102}") String skillUrl) {
         this.taskMapper = taskMapper;
         this.resultMapper = resultMapper;
@@ -233,7 +233,22 @@ public class EvalExecutor {
 
         try {
             String actualStr = mapper.writeValueAsString(output);
-            return actualStr.toLowerCase().contains(expected.toLowerCase());
+            if (actualStr == null) return false;
+
+            // Exact substring match (case-insensitive)
+            if (actualStr.toLowerCase().contains(expected.toLowerCase())) return true;
+
+            // Token-overlap fuzzy match for multi-word expected answers
+            String[] expectedTokens = expected.toLowerCase().split("[\\s,，。；;]+");
+            int matched = 0;
+            String lowerActual = actualStr.toLowerCase();
+            for (String token : expectedTokens) {
+                if (token.length() >= 2 && lowerActual.contains(token)) {
+                    matched++;
+                }
+            }
+            // Pass if >= 60% of expected tokens appear in the actual output
+            return expectedTokens.length > 0 && (double) matched / expectedTokens.length >= 0.6;
         } catch (Exception e) {
             return false;
         }

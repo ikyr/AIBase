@@ -111,6 +111,7 @@ export default function WorkflowEditorPage() {
         START: '开始', END: '结束', AGENT: 'Agent', SKILL: 'Skill',
         TOOL: 'Tool', KNOWLEDGE: '知识检索', CONDITION: '条件判断',
         PARALLEL: '并行执行', LLM_CALL: 'LLM 调用', CODE: '脚本执行', WAIT: '等待审批',
+        QUESTION_CLASSIFIER: '问题分类', VARIABLE_ASSIGNER: '变量赋值', HTTP_REQUEST: 'HTTP 请求',
       };
 
       const newNode: Node = {
@@ -221,6 +222,7 @@ export default function WorkflowEditorPage() {
                   SKILL: '#722ed1', TOOL: '#fa8c16', KNOWLEDGE: '#13c2c2',
                   CONDITION: '#fadb14', PARALLEL: '#8c8c8c', LLM_CALL: '#2f54eb',
                   CODE: '#434343', WAIT: '#d48806',
+                  QUESTION_CLASSIFIER: '#eb2f96', VARIABLE_ASSIGNER: '#faad14', HTTP_REQUEST: '#fa541c',
                 };
                 return colors[d.nodeType] ?? '#d9d9d9';
               }}

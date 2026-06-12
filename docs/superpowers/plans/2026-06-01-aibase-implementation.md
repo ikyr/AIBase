@@ -10,16 +10,16 @@
 
 ---
 
-## Implementation Progress (as of 2026-06-04)
+## Implementation Progress (as of 2026-06-10)
 
 ### Completed (Core Wiring)
 
 | Phase | Status | Notes |
 |-------|--------|-------|
 | Phase 0 | Done | Maven parent POM created, Docker Compose infrastructure YAML ready |
-| Phase 1 | Done | ai-base-common: BaseEntity, SnowflakeIdGenerator, ApiResponse, enums, security filters, exception hierarchy, GlobalExceptionHandler |
+| Phase 1 | Done | ai-base-common: BaseEntity, SnowflakeIdGenerator, ApiResponse, enums, **ApiKeyAuthFilter** (OncePerRequestFilter) + **PropertiesApiKeyStore** (@ConfigurationProperties), exception hierarchy, GlobalExceptionHandler |
 | Phase 2 | Done | ai-base-api: Module POM created; Feign clients defined but ChatController is echo stub |
-| Phase 3 | **Wired** | knowledge-service: CRUD + IngestPipeline + DocumentSplitter + FileSystemConnector done. EmbeddingService now calls model-gateway via RestClient. DashScopeSearchAdapter still stub. Milvus KnowledgeRepository has no implementation |
+| Phase 3 | **Done** | knowledge-service: CRUD + IngestPipeline + DocumentSplitter + FileSystemConnector done. EmbeddingService calls model-gateway via RestClient. MilvusKnowledgeRepository fully implemented with Milvus SDK 2.4.1 (collection CRUD, vector insert/search, doc deletion, count). DashScopeSearchAdapter still stub |
 | Phase 4 | **Done** | model-gateway: Full CRUD + DashScopeProvider + OpenAIProvider with real HTTP calls + ModelRouter + REST controller. **/embed endpoint added** |
 | Phase 5 | **Wired** | skill-service: CRUD done. **POST /api/v1/skill/execute endpoint added** — execute() currently returns skill config + context without calling LLM |
 | Phase 6 | **Done** | workflow-service: CRUD + DagParser + **WorkflowExecutor** with Kahn's topological sort + **real SKILL/AGENT node execution via RestClient** + **WfNodeExec per-node tracking (V009 migration)** |
@@ -27,7 +27,7 @@
 | Phase 8 | Partial | mcp-gateway: DB migration SQL created, CRUD done. No MCP protocol implementation (JSON-RPC, stdio/SSE) |
 | Phase 9 | Partial | eval-service: DB migration SQL created, CRUD done. No evaluation runner — tasks/datasets are created but never executed |
 | Phase 10 | Partial | platform-service: DB migration SQL created, CRUD done. approve()/reject() only set status, no workflow chain or notifications |
-| Phase 11 | Partial | API Gateway: pom.xml + application.yml with 8 routes configured. No custom Java filters or auth |
+| Phase 11 | **Done** | API Gateway: pom.xml + application.yml with 8 routes configured. **AuthGatewayFilterFactory** (global filter, validates X-Api-Key header against configured keys). **ApiKeyAuthFilter** in common module (OncePerRequestFilter, validated by PropertiesApiKeyStore). Both support Spring Boot relaxed binding (AIBASE_SECURITY_KEYS → aibase.security.keys) |
 
 ### Key New Files Beyond Original Plan
 
@@ -64,8 +64,62 @@
    - knowledge=8101, skill=8102, workflow=8103, model-gateway=8104, agent=8105, mcp-gateway=8106, eval=8107, platform=8108, gateway=8081
 5. **RestClient for inter-service calls**: `ModelGatewayClient` (agent→model-gateway), `EmbeddingService` (knowledge→model-gateway), `WorkflowExecutor` (workflow→skill-service + agent-service) all use `RestClient.create()` with configurable base URLs.
 6. **Per-node execution tracking**: WorkflowExecutor records `WfNodeExec` rows (RUNNING→COMPLETED/FAILED) with timing and input/output for each DAG node.
+7. **API Key Authentication (2026-06-10)**: Dual-layer auth with X-Api-Key header:
+   - **Gateway layer**: `AuthGatewayFilterFactory` (global filter in ai-base-gateway) validates X-Api-Key against configured keys before routing.
+   - **Service layer**: `ApiKeyAuthFilter` (OncePerRequestFilter in ai-base-common) provides per-service auth for direct service access.
+   - **Key store**: `PropertiesApiKeyStore` reads from `aibase.security.keys` config map, supports Spring Boot relaxed binding from `AIBASE_SECURITY_KEYS` env var.
+   - **Empty key bypass**: Both filters skip validation when no keys are configured (dev-friendly default).
+   - **Blank key filtering**: PropertiesApiKeyStore filters out empty/blank values from the comma-separated key list.
+8. **Milvus SDK 2.4.1 API Migration (2026-06-10)**: 4 breaking API changes addressed in MilvusKnowledgeRepository:
+   - `FieldType` requires Builder pattern: `FieldType.newBuilder().withName().withDataType().withPrimaryKey().build()`
+   - `CreateCollectionParam.Builder.addField()` → `addFieldType()`
+   - `io.milvus.param.dml.FlushParam` → `io.milvus.param.collection.FlushParam`
+   - `SearchResultsWrapper.RowRecordWrapper` → `wrapper.getIDScore(0)` returning `List<SearchResultsWrapper.IDScore>`
+
+### Build & Deploy Configuration (2026-06-10)
+
+**Maven Build:**
+- **Version**: Apache Maven 3.9.9 (installed at `D:\maven\apache-maven-3.9.9-bin\apache-maven-3.9.9`)
+- **Settings**: `conf/settings.xml` — Aliyun mirror only (`https://maven.aliyun.com/repository/public`), no private Nexus, no active profiles
+- **Local repository**: `D:\mavenck`
+- **Build command**: `mvn clean package -DskipTests` (all 12 modules, ~32s)
+
+**Docker Deployment (server 10.139.11.100):**
+- **Project name**: Always use `-p aibase` for docker-compose to ensure `aibase_default` network
+- **Network**: All services on `aibase_default` bridge network; gateway resolves service names via Docker DNS
+- **Container lifecycle**: `docker stop X && docker rm X && docker-compose -p aibase -f infrastructure.yml -f app.yml up -d --no-deps X`
+- **No infrastructure pulls**: Never use `--build` without `--no-deps` for app services; server cannot reach Docker Hub
+- **JAR deployment**: Upload JARs via SCP to `/root/aibase/jars/`, then recreate containers
+- **Frontend**: Manual `docker run` with `--network aibase_default`, port 80:80, volume mounts for dist/ + nginx.conf. Not defined in compose files (one-off container)
+
+**Frontend nginx reverse proxy:**
+```nginx
+location /api/ {
+    proxy_pass http://api-gateway:8081;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+```
+SPA fallback: `try_files $uri $uri/ /index.html`.
+
+### Key New Files (Post-2026-06-04)
+
+**Security (API Key Auth):**
+- `ai-base-common/.../security/ApiKeyAuthFilter.java` — OncePerRequestFilter, validates X-Api-Key header
+- `ai-base-common/.../security/PropertiesApiKeyStore.java` — @ConfigurationProperties(prefix = "aibase.security"), reads keys map, filters blanks
+- `ai-base-gateway/.../filter/AuthGatewayFilterFactory.java` — Global gateway filter, validates X-Api-Key before routing
+
+**Knowledge (Milvus SDK 2.4.1):**
+- `ai-base-knowledge/.../repository/MilvusKnowledgeRepository.java` — Full implementation: createCollection, dropCollection, insertVectors, search (with IDScore), deleteByDocId, count
+
+**Frontend:**
+- `ai-base-frontend/src/shared/api/client.ts` — X-Api-Key interceptor with default key `aibase-dev-key-2024`
+- `ai-base-frontend/nginx.conf` — API reverse proxy to gateway + SPA fallback
 
 ---
+
 
 ## Phase 0: Project Scaffolding
 
@@ -1573,7 +1627,7 @@ spring:
 Phase 0  ✅ Project scaffolding, Maven parent POM, Docker Compose
 Phase 1  ✅ Common module (shared entities, utils, security, exception handling)
 Phase 2  🔶 API module (Feign client interfaces defined; ChatController is echo stub)
-Phase 3  🔶 knowledge-service (DB + CRUD + IngestPipeline + EmbeddingService wired; DashScope search stub; no Milvus impl)
+Phase 3  ✅ knowledge-service (DB + CRUD + IngestPipeline + EmbeddingService + **MilvusKnowledgeRepository** with SDK 2.4.1; DashScope search stub)
 Phase 4  ✅ model-gateway (DB + CRUD + real HTTP providers + /chat + /embed endpoints)
 Phase 5  🔶 skill-service (DB + CRUD + /execute endpoint added; execute() returns config, no LLM call)
 Phase 6  ✅ workflow-service (DB + CRUD + WorkflowExecutor + real SKILL/AGENT calls + WfNodeExec tracking)
@@ -1581,24 +1635,40 @@ Phase 7  ✅ agent-service (DB + CRUD + ReActLoop + ModelGatewayClient wired to 
 Phase 8  🔶 mcp-gateway (DB + CRUD done; no MCP protocol — JSON-RPC, stdio/SSE)
 Phase 9  🔶 eval-service (DB + CRUD done; no evaluation runner)
 Phase 10 🔶 platform-service (DB + CRUD done; approve/reject only sets status, no workflow)
-Phase 11 🔶 API Gateway (pom.yml + routes config done; no custom filters/auth)
+Phase 11 ✅ API Gateway (pom.yml + routes config + **AuthGatewayFilterFactory** + **ApiKeyAuthFilter** with X-Api-Key header validation)
 ```
 
 ✅ = Core complete  🔶 = Partial (core done, advanced features pending)
 
-## Remaining Work (Priority Order)
+## Remaining Work (Priority Order) — updated 2026-06-12
+
+### Sprint 1 已完成 ✅ (2026-06-12)
+- **多格式文档解析**：Apache Tika 2.9.2，PDF/DOCX/PPTX/TXT/MD/HTML/CSV；`POST /kb/{id}/upload`；前端真实上传
+- **3 新工作流节点**：QUESTION_CLASSIFIER / VARIABLE_ASSIGNER / HTTP_REQUEST，前后端完整四层注册
+- 全部 TS 零错误 + Java 编译通过
+
+### 仍待完成
 
 | Priority | Module | Work Needed |
 |----------|--------|-------------|
-| P0 | **Tests** | Zero test files exist. All 8 services need unit + integration tests (80% target) |
-| P1 | **Skill** | `execute()` should call model-gateway with promptTemplate + context for real LLM execution |
-| P1 | **Eval** | Implement evaluation runner: iterate dataset items, call target service, compute metrics |
-| P1 | **Knowledge** | Implement MilvusKnowledgeRepository (Milvus SDK); replace DashScopeSearchAdapter stub |
-| P2 | **MCP Gateway** | Implement MCP protocol: JSON-RPC transport, tool proxy, connection pool |
-| P2 | **Platform** | Multi-step approval chains, notifications, prompt publish/rollback |
-| P2 | **ai-base-api** | Wire ChatController to Feign clients for aggregated chat flow |
-| P3 | **API Gateway** | Auth filter, rate limiting, request logging |
-| P3 | **Agent** | GraphBridge for multi-agent orchestration, NegotiationEngine |
-| P3 | **Workflow** | Additional node types (CONDITION, PARALLEL, WAIT), HITL approval integration |
+| P0 | **Chatflow** | 对话流引擎：智能路由+分支+记忆+可视化编辑器 |
+| P0 | **Prompt IDE** | 可视化 Prompt 编辑器 + A/B 测试 + Monaco 集成 |
+| P1 | **Knowledge** | DashScopeSearchAdapter; ConnectorConfigCard/SearchEngineConfigCard UI |
+| P2 | **MCP Gateway** | Full MCP protocol: JSON-RPC transport, tool proxy, connection pool hardening |
+| P3 | **API Gateway** | ~~Auth filter~~ ✅. Rate limiting implementation, request logging |
+| P4 | **Frontend** | ConnectorConfigCard / SearchEngineConfigCard / SearchBar / useRequest/usePagination components |
+
+### Completed since last update (2026-06-12)
+
+| Module | What was done |
+|--------|---------------|
+| **Tests** | 105+ unit tests across all 8 backend modules (JUnit 5 + Mockito). E2E infrastructure: Playwright + 3 spec files (chat/knowledge/agent) |
+| **Skill** | `execute()` already calls model-gateway.chat() with rendered prompt. renderTemplate() enhanced — supports nested `{{parent.child}}` keys + clears unresolved placeholders |
+| **Eval** | EvalExecutor fully implemented: iterates dataset items, calls target services, judges with token-overlap fuzzy matching (60% threshold), computes aggregated metrics. Frontend: execute button + create task modal + success rate column |
+| **Knowledge** | Frontend search UI: input box + strategy selector + result list (relevance scores, keyword highlighting) + content preview modal. Backend search types aligned |
+| **Platform** | Multi-step approval chain: chainStep/totalSteps fields, auto-advance on approve, final-step auto-publish. SlaTracker escalates status to ESCALATED at 48h |
+| **ai-base-api** | ChatController wired: forwards to agent-service via RestClient, returns real AI responses with tool calls |
+| **Agent** | GraphBridge, NegotiationEngine, ContextWindowManager, ConversationTree all present and implemented |
+| **Workflow** | All 9 node types (CONDITION, PARALLEL, WAIT, etc.) implemented in WorkflowExecutor |
 
 Phases 3-9 have no hard dependencies between them once Phases 0-2 are complete, and can be built in parallel.

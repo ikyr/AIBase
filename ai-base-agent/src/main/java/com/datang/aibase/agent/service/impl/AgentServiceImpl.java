@@ -81,6 +81,20 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
+    public AgentDef update(String id, AgentDef agent) {
+        agent.setId(id);
+        agent.setUpdatedAt(java.time.LocalDateTime.now());
+        agentDefMapper.update(agent);
+        return agentDefMapper.selectById(id);
+    }
+
+    @Override
+    public void delete(String id) {
+        agentDefMapper.softDelete(id);
+        log.info("Deleted agent: {}", id);
+    }
+
+    @Override
     public List<AgentSession> listSessions(int limit) {
         return sessionMapper.selectRecent(limit);
     }

@@ -350,6 +350,8 @@ ai-base-frontend/
 
 ```typescript
 // shared/api/client.ts
+const apiKey = localStorage.getItem('apiKey') || 'aibase-dev-key-2024';
+
 const client = axios.create({
   baseURL: '/api/v1',
   timeout: 30000,
@@ -358,12 +360,13 @@ const client = axios.create({
 client.interceptors.request.use((config) => {
   config.headers['X-User-Id'] = getUserId();    // 从 Zustand 或 localStorage
   config.headers['X-Dept-Id'] = getDeptId();
+  config.headers['X-Api-Key'] = apiKey;          // API Key 认证，默认值 aibase-dev-key-2024
   return config;
 });
 
 client.interceptors.response.use(
   (res) => res.data,           // 解包 ApiResponse
-  (err) => { /* 统一错误处理 */ }
+  (err) => { /* 统一错误处理，401 时提示用户检查 API Key */ }
 );
 ```
 
@@ -517,7 +520,42 @@ interface ChatState {
 
 ## 当前实现状态
 
-前端项目已于 2026-06-02 完成初始实现，2026-06-04 完成 API 适配（Point 2）。开发服务器运行在 `http://localhost:5173/`（API 代理 → `http://localhost:8081`）。
+前端项目已于 2026-06-02 完成初始实现，2026-06-04 完成 API 适配（Point 2），2026-06-10 完成部署配置与 API Key 认证集成。开发服务器运行在 `http://localhost:5173/`（API 代理 → `http://localhost:8081`），生产部署在 `http://10.139.11.100/`（nginx → api-gateway:8081）。
+
+### API Key 认证 (2026-06-10)
+
+所有前端 API 请求通过 Axios 拦截器自动注入 `X-Api-Key` 请求头，默认值为 `aibase-dev-key-2024`。用户可通过 localStorage 覆盖。Gateway 层（AuthGatewayFilterFactory）和服务层（ApiKeyAuthFilter）双重校验。401 响应时提示用户检查 API Key 配置。
+
+### Nginx 反向代理 (2026-06-10)
+
+生产部署使用 nginx 作为静态文件服务器 + API 反向代理：
+
+```nginx
+server {
+    listen 80;
+    server_name localhost;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # API 反向代理到 Gateway
+    location /api/ {
+        proxy_pass http://api-gateway:8081;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_connect_timeout 30s;
+        proxy_read_timeout 120s;
+    }
+
+    # SPA fallback
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
+```
+
+前端容器通过 `--network aibase_default` 加入与后端服务相同的 Docker 网络，使用 Docker 内置 DNS 解析 `api-gateway` 服务名。
 
 ### 已完成
 
@@ -527,7 +565,7 @@ interface ChatState {
 | 布局壳 | ConsoleLayout（48px 顶栏 + 8 模块导航 + 用户区）, ModuleLayout（200px 侧边栏 + Outlet） | 完成 |
 | 路由框架 | router.tsx，24 条路由全部 `React.lazy()` + `Suspense` + `Spin` fallback | 完成 |
 | 设计系统 | tokens.ts（Ant Design 5 ThemeConfig，主色 #597ef7，完整圆角/字号/组件 token 覆盖） | 完成 |
-| API 客户端 | client.ts（Axios 实例 + 请求拦截器注入 X-User-Id/X-Dept-Id + 响应拦截器解包 ApiResponse + get/post/del 命名导出）, types.ts | 完成 |
+| API 客户端 | client.ts（Axios 实例 + 请求拦截器注入 X-User-Id/X-Dept-Id/X-Api-Key + 响应拦截器解包 ApiResponse + get/post/del 命名导出）, types.ts | 完成 |
 | **8 个 API 模块** | agent.ts, skill.ts, model.ts, mcp.ts, eval.ts, platform.ts, workflow.ts, knowledge.ts — 全部创建完成 (2026-06-04) | 完成 |
 | 共享组件 | StatCard, StatusTag, EmptyState, PageHeader | 完成 |
 | Chat 模块 | ChatPage（会话列表 + 消息区 + 输入栏）, ChatInput, chatStore（Zustand，模拟 AI 延迟回复） | 完成 |
@@ -539,7 +577,7 @@ interface ChatState {
 | Model 模块 | ModelListPage + modelStore（真实 API）, ModelRouteRulePage, ModelCallLogPage | 完成 |
 | Eval 模块 | EvalDatasetListPage + evalStore（真实 API）, EvalTaskListPage, EvalResultPage（results 数组展示） | 完成 |
 | Platform 模块 | PromptVersionPage + platformStore（真实 API）, ApprovalPage | 完成 |
-| 部署配置 | frontend Dockerfile（多阶段构建 node→nginx）, nginx.conf（SPA fallback + API 反向代理） | 完成 |
+| 部署配置 | frontend Dockerfile（多阶段构建 node→nginx）, nginx.conf（SPA fallback + API 反向代理到 api-gateway:8081 + X-Api-Key 认证） | 完成 |
 | **API 适配 (Point 2)** | 全部 8 个 store 从 mock 数据迁移至真实 API 调用，17 个页面字段对齐后端 API 实体类型，TypeScript 零错误 (2026-06-04) | 完成 |
 
 ### 实际目录结构与设计差异
@@ -557,11 +595,11 @@ interface ChatState {
 | AnnotationPanel / PromptDiffView | 合并入对应页面 | 延后实现 |
 | workflow.ts / agent.ts / skill.ts / mcp.ts / model.ts / eval.ts / platform.ts | **全部已创建 (2026-06-04)** | 8 个 API 模块全部实现，类型安全 |
 
-### 待完善
+### 待完善 — updated 2026-06-12
 
-1. **Workflow 模块**：集成 React Flow DAG 画布编辑器
-2. **Knowledge 详情页**：连接器/搜索引擎配置界面
-3. **各模块 CRUD 表单**：Agent/Skill/MCP/Model 的新建/编辑 Modal
-4. **E2E 测试**：Playwright 关键用户流程测试
-5. ~~**其余 API 文件**~~：已完成 (2026-06-04)
+1. ~~**Workflow 模块**~~ ✅ 已完成 (2026-06-09: @xyflow/react v12 集成，11 种节点类型拖拽式可视化编辑 + MiniMap)
+2. **Knowledge 详情页**：连接器/搜索引擎配置界面（ConnectorConfigCard / SearchEngineConfigCard 未实现）。~~检索交互~~ ✅ (2026-06-12)
+3. ~~**各模块 CRUD 表单**~~ ✅ 已完成 (2026-06-09: AgentCreateModal / SkillCreateModal / McpCreateModal / ModelCreateModal)
+4. ~~**E2E 测试**~~ ✅ 已完成 (2026-06-12: Playwright + 3 个 spec 覆盖 Chat/Knowledge/Agent 关键流程)
+5. ~~**其余 API 文件**~~ ✅ 已完成 (2026-06-04)
 6. **SearchBar + useRequest/usePagination**：列表页数据量增长后提取通用组件

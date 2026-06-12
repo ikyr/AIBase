@@ -54,12 +54,17 @@ public class MilvusKnowledgeRepository implements KnowledgeRepository {
             CreateCollectionParam createParam = CreateCollectionParam.newBuilder()
                     .withCollectionName(name)
                     .withDescription("KB: " + kbId)
-                    .addField(new io.milvus.param.collection.FieldType(ID_FIELD, DataType.VarChar, 32)
-                            .setPrimaryKey(true).setMaxLength(32))
-                    .addField(new io.milvus.param.collection.FieldType("doc_id", DataType.VarChar, 32)
-                            .setMaxLength(32))
-                    .addField(new io.milvus.param.collection.FieldType("chunk_index", DataType.Int32))
-                    .addField(new io.milvus.param.collection.FieldType(VECTOR_FIELD, DataType.FloatVector, dimension))
+                    .addFieldType(io.milvus.param.collection.FieldType.newBuilder()
+                            .withName(ID_FIELD).withDataType(DataType.VarChar)
+                            .withPrimaryKey(true).withMaxLength(32).build())
+                    .addFieldType(io.milvus.param.collection.FieldType.newBuilder()
+                            .withName("doc_id").withDataType(DataType.VarChar)
+                            .withMaxLength(32).build())
+                    .addFieldType(io.milvus.param.collection.FieldType.newBuilder()
+                            .withName("chunk_index").withDataType(DataType.Int32).build())
+                    .addFieldType(io.milvus.param.collection.FieldType.newBuilder()
+                            .withName(VECTOR_FIELD).withDataType(DataType.FloatVector)
+                            .withDimension(dimension).build())
                     .build();
 
             R<RpcStatus> result = client.createCollection(createParam);
@@ -126,7 +131,7 @@ public class MilvusKnowledgeRepository implements KnowledgeRepository {
             if (result.getStatus() != 0) {
                 log.error("Failed to insert vectors into {}: {}", name, result.getMessage());
             } else {
-                client.flush(io.milvus.param.dml.FlushParam.newBuilder()
+                client.flush(io.milvus.param.collection.FlushParam.newBuilder()
                         .addCollectionName(name).build());
                 log.info("Inserted {} vectors into {}", ids.size(), name);
             }
@@ -157,15 +162,15 @@ public class MilvusKnowledgeRepository implements KnowledgeRepository {
 
             SearchResultsWrapper wrapper = new SearchResultsWrapper(result.getData().getResults());
             List<SearchHit> hits = new ArrayList<>();
-            for (int i = 0; i < wrapper.getRowRecords().size(); i++) {
-                SearchResultsWrapper.RowRecordWrapper row = wrapper.getRowRecords().get(i);
-                Map<String, Object> fields = row.getFieldValues();
+            List<SearchResultsWrapper.IDScore> scores = wrapper.getIDScore(0);
+            for (SearchResultsWrapper.IDScore score : scores) {
+                Map<String, Object> fields = score.getFieldValues();
                 String chunkId = String.valueOf(fields.getOrDefault(ID_FIELD, ""));
-                float score = row.getScore();
+                float s = score.getScore();
                 Map<String, String> meta = new LinkedHashMap<>();
                 meta.put("doc_id", String.valueOf(fields.getOrDefault("doc_id", "")));
                 meta.put("chunk_index", String.valueOf(fields.getOrDefault("chunk_index", "0")));
-                hits.add(new SearchHit(chunkId, score, meta));
+                hits.add(new SearchHit(chunkId, s, meta));
             }
             return hits;
         } catch (Exception e) {

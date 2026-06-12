@@ -56,6 +56,14 @@ public class McpServiceImpl implements McpService {
     }
 
     @Override
+    public McpServer updateServer(String id, McpServer server) {
+        server.setId(id);
+        server.setUpdatedAt(java.time.LocalDateTime.now());
+        serverMapper.update(server);
+        return serverMapper.selectById(id);
+    }
+
+    @Override
     public McpServer register(McpServer server) {
         server.setId(SnowflakeIdGenerator.nextId());
         serverMapper.insert(server);

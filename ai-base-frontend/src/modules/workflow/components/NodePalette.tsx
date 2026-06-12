@@ -12,6 +12,9 @@ const nodeTypes = [
   { type: 'LLM_CALL', label: 'LLM 调用', color: '#2f54eb' },
   { type: 'CODE', label: '脚本', color: '#434343' },
   { type: 'WAIT', label: '等待', color: '#d48806' },
+  { type: 'QUESTION_CLASSIFIER', label: '问题分类', color: '#eb2f96' },
+  { type: 'VARIABLE_ASSIGNER', label: '变量赋值', color: '#faad14' },
+  { type: 'HTTP_REQUEST', label: 'HTTP 请求', color: '#fa541c' },
 ];
 
 export default function NodePalette() {

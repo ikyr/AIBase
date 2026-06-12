@@ -55,6 +55,27 @@ public class WorkflowServiceImpl implements WorkflowService {
     }
 
     @Override
+    public WfDefinition update(String id, WfDefinition partial) {
+        WfDefinition existing = definitionMapper.selectById(id);
+        if (existing == null) throw new IllegalArgumentException("Workflow not found: " + id);
+        if (partial.getName() != null) existing.setName(partial.getName());
+        if (partial.getDescription() != null) existing.setDescription(partial.getDescription());
+        if (partial.getDag() != null) existing.setDag(partial.getDag());
+        if (partial.getTimeoutSeconds() != null) existing.setTimeoutSeconds(partial.getTimeoutSeconds());
+        if (partial.getRetryPolicy() != null) existing.setRetryPolicy(partial.getRetryPolicy());
+        if (partial.getVersion() != null) existing.setVersion(partial.getVersion());
+        existing.setUpdatedAt(java.time.LocalDateTime.now());
+        definitionMapper.update(existing);
+        return existing;
+    }
+
+    @Override
+    public void delete(String id) {
+        definitionMapper.softDelete(id);
+        log.info("Deleted workflow definition: {}", id);
+    }
+
+    @Override
     public List<WfInstance> listInstances(int limit) {
         return instanceMapper.selectRecent(limit);
     }

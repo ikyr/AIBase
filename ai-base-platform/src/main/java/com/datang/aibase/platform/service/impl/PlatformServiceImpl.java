@@ -92,10 +92,30 @@ public class PlatformServiceImpl implements PlatformService {
         }
         approvalRecordMapper.updateStatus(id, "APPROVED");
 
-        if ("PROMPT_VERSION".equals(record.getRefType()) && record.getRefId() != null) {
+        // Multi-step chain: create next step if not the last
+        int currentStep = record.getChainStep() != null ? record.getChainStep() : 1;
+        int totalSteps = record.getTotalSteps() != null ? record.getTotalSteps() : 1;
+        if (currentStep < totalSteps) {
+            ApprovalRecord nextStep = new ApprovalRecord();
+            nextStep.setType(record.getType());
+            nextStep.setRefType(record.getRefType());
+            nextStep.setRefId(record.getRefId());
+            nextStep.setRefName(record.getRefName());
+            nextStep.setRequester(record.getRequester());
+            nextStep.setApprovers(record.getApprovers());
+            nextStep.setChainStep(currentStep + 1);
+            nextStep.setTotalSteps(totalSteps);
+            nextStep.setStatus("PENDING");
+            createApproval(nextStep);
+            log.info("Created approval chain step {}/{} for {} (previous: {})",
+                    currentStep + 1, totalSteps, record.getRefType(), id);
+        }
+
+        // Auto-publish after final step approval
+        if (currentStep >= totalSteps && "PROMPT_VERSION".equals(record.getRefType()) && record.getRefId() != null) {
             try {
                 publishPrompt(record.getRefId());
-                log.info("Auto-published prompt {} after approval {}", record.getRefId(), id);
+                log.info("Auto-published prompt {} after final approval {}", record.getRefId(), id);
             } catch (Exception e) {
                 log.warn("Failed to auto-publish prompt {} after approval: {}", record.getRefId(), e.getMessage());
             }

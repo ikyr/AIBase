@@ -137,3 +137,4 @@ bash deploy.sh
 - [部署指南](docs/DEPLOYMENT.md)
 - [GraphRAG 可行性分析](docs/graphrag-analysis.md)
 - [设计规格](docs/superpowers/specs/2026-06-01-ai-base-design.md)
+- [AIBase vs Dify 功能对比](docs/dify-comparison.md)

@@ -70,6 +70,20 @@ public class SkillServiceImpl implements SkillService {
     }
 
     @Override
+    public SkillDef update(String id, SkillDef skill) {
+        skill.setId(id);
+        skill.setUpdatedAt(java.time.LocalDateTime.now());
+        skillDefMapper.update(skill);
+        return skillDefMapper.selectById(id);
+    }
+
+    @Override
+    public void delete(String id) {
+        skillDefMapper.softDelete(id);
+        log.info("Deleted skill: {}", id);
+    }
+
+    @Override
     public List<SkillVersion> getVersions(String skillId) {
         return skillVersionMapper.selectBySkillId(skillId);
     }
@@ -226,9 +240,25 @@ public class SkillServiceImpl implements SkillService {
 
     private String renderTemplate(String template, Map<String, Object> context) {
         String result = template;
+        // Replace flat keys: {{key}}
         for (Map.Entry<String, Object> entry : context.entrySet()) {
             result = result.replace("{{" + entry.getKey() + "}}", String.valueOf(entry.getValue()));
         }
+        // Replace nested keys: {{parent.child}}
+        for (Map.Entry<String, Object> entry : context.entrySet()) {
+            if (entry.getValue() instanceof Map<?, ?> nested) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> nestedMap = (Map<String, Object>) nested;
+                for (Map.Entry<String, Object> ne : nestedMap.entrySet()) {
+                    result = result.replace(
+                            "{{" + entry.getKey() + "." + ne.getKey() + "}}",
+                            String.valueOf(ne.getValue())
+                    );
+                }
+            }
+        }
+        // Mark unresolved placeholders with empty string
+        result = result.replaceAll("\\{\\{[^}]+}}", "");
         return result;
     }
 

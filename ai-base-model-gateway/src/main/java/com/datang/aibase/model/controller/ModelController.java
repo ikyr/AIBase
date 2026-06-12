@@ -35,6 +35,17 @@ public class ModelController {
         return ApiResponse.ok(modelService.create(config));
     }
 
+    @PostMapping("/{id}")
+    public ApiResponse<ModelConfig> update(@PathVariable String id, @RequestBody ModelConfig config) {
+        return ApiResponse.ok(modelService.update(id, config));
+    }
+
+    @DeleteMapping("/{id}")
+    public ApiResponse<Void> delete(@PathVariable String id) {
+        modelService.delete(id);
+        return ApiResponse.ok(null);
+    }
+
     @GetMapping("/rules")
     public ApiResponse<List<ModelRouteRule>> listRules() {
         return ApiResponse.ok(modelService.listRules());

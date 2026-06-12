@@ -14,6 +14,8 @@ public interface McpService {
 
     McpServer register(McpServer server);
 
+    McpServer updateServer(String id, McpServer server);
+
     void deleteServer(String id);
 
     List<McpTool> listTools(String serverId);

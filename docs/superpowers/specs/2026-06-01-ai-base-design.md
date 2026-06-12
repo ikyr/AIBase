@@ -1462,7 +1462,7 @@ mvn spring-boot:run -pl ai-base-gateway &
 
 ---
 
-## 当前实现状态 (updated 2026-06-09)
+## 当前实现状态 (updated 2026-06-12)
 
 ### 后端
 
@@ -1557,7 +1557,19 @@ mvn spring-boot:run -pl ai-base-gateway &
   - **Agent/Skill/MCP/Model CRUD Modal**：各模块新建/编辑/删除完整支持，Skill 按层级（PROMPT/FUNCTION/AGENT）动态表单，列表页 + 详情页均有操作入口
   - **Workflow CRUD**：新建/删除工作流，列表页增强
 
-### 实施进度 (as of 2026-06-09)
+- **新增** (2026-06-12)：
+  - **Knowledge 检索交互**：KbDetailPage 新增搜索框 + 策略选择器 + 结果列表含相关度评分 + 内容预览 Modal + 关键词高亮
+  - **Eval 评估执行**：EvalTaskListPage 新增执行按钮 + 创建任务 Modal + 成功率列；EvalExecutor.judge() 增强为 token-overlap 模糊匹配（60% 阈值）
+  - **Skill 模板渲染增强**：renderTemplate() 支持嵌套参数 `{{parent.child}}` + 未解析占位符清除
+  - **Platform 审批链**：ApprovalRecord 新增 chainStep/totalSteps；approve() 多步审批链自动递增 + 最终步骤自动发布；SlaTracker 48h 超时自动升级 ESCALATED
+  - **E2E 测试基建**：Playwright + 3 个 spec 文件（chat/knowledge/agent）+ playwright.config.ts + npm scripts
+- **Sprint 1 补齐** (2026-06-12)：
+  - **多格式文档解析**：Apache Tika 2.9.2 集成，PDF/DOCX/PPTX/TXT/MD/HTML/CSV 自动解析；新增 `POST /kb/{id}/upload` MultipartFile 端点；FileSystemConnector 改用 Tika
+  - **3 新工作流节点**：QUESTION_CLASSIFIER（LLM 分类器）、VARIABLE_ASSIGNER（变量赋值+类型转换）、HTTP_REQUEST（完整 REST 调用）
+  - **前端上传修复**：DocumentUploadPage 从 stub → 真实 FormData 上传 + 进度跟踪
+- **后续计划**：Chatflow 对话流引擎 → 可视化 Prompt IDE → OAuth/SSO，详见 [docs/dify-comparison.md](docs/dify-comparison.md) 和 [plans/lexical-hopping-hammock.md](../plans/lexical-hopping-hammock.md)
+
+### 实施进度 (as of 2026-06-12)
 
 **已完成（核心功能）：**
 - 全部 9 个数据库迁移（V001-V009），27+ 张表
@@ -1604,9 +1616,11 @@ mvn spring-boot:run -pl ai-base-gateway &
 
 ### 待实现（按优先级）
 
-1. **P4 — 前端 Chat 页面接入真实 Agent API**（替换 mock echo 为真实 AI 调用）
-2. **P4 — 前端 Knowledge 检索交互**（搜索框 + 结果展示 + 文档预览）
-3. **P4 — 前端 Eval 评估任务执行与结果对比**
+1. ~~**P4 — 前端 Chat 页面接入真实 Agent API**~~ ✅ 已完成 (2026-06-09: chatStore 调用 `/agent/chat` 端点，ChatController 转发至 agent-service)
+2. ~~**P4 — 前端 Knowledge 检索交互**~~ ✅ 已完成 (2026-06-12: 搜索框 + 策略选择器 + 结果列表含相关度评分 + 内容预览 Modal + 关键词高亮)
+3. ~~**P4 — 前端 Eval 评估任务执行与结果对比**~~ ✅ 已完成 (2026-06-12: 执行按钮 + 创建任务 Modal + 成功率展示 + judge 模糊匹配增强)
+4. **P5 — 前端 ConnectorConfigCard/SearchEngineConfigCard**（知识库连接器/搜索引擎配置 UI）
+5. **P5 — 前端 SearchBar + useRequest/usePagination 通用组件**
 
 ---
 

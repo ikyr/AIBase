@@ -15,6 +15,10 @@ public interface SkillService {
 
     SkillDef create(SkillDef skill);
 
+    SkillDef update(String id, SkillDef skill);
+
+    void delete(String id);
+
     List<SkillVersion> getVersions(String skillId);
 
     SkillVersion addVersion(SkillVersion version);

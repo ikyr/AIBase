@@ -53,29 +53,29 @@ export interface AgentMessage {
 }
 
 export function listAgents(): Promise<ApiResponse<AgentDef[]>> {
-  return get<AgentDef[]>('agent', '/agent');
+  return get<AgentDef[]>('/agent');
 }
 
 export function getAgentById(id: string): Promise<ApiResponse<AgentDef>> {
-  return get<AgentDef>('agent', `/agent/${id}`);
+  return get<AgentDef>(`/agent/${id}`);
 }
 
 export function listAgentSessions(): Promise<ApiResponse<AgentSession[]>> {
-  return get<AgentSession[]>('agent', '/agent/sessions');
+  return get<AgentSession[]>('/agent/sessions');
 }
 
 export function getAgentMessages(sessionId: string): Promise<ApiResponse<AgentMessage[]>> {
-  return get<AgentMessage[]>('agent', `/agent/sessions/${sessionId}/messages`);
+  return get<AgentMessage[]>(`/agent/sessions/${sessionId}/messages`);
 }
 
 export function createAgent(data: AgentCreateRequest): Promise<ApiResponse<AgentDef>> {
-  return post<AgentDef>('agent', '/agent', data);
+  return post<AgentDef>('/agent', data);
 }
 
 export function updateAgent(id: string, data: Partial<AgentCreateRequest>): Promise<ApiResponse<AgentDef>> {
-  return post<AgentDef>('agent', `/agent/${id}`, data);
+  return post<AgentDef>(`/agent/${id}`, data);
 }
 
 export function deleteAgent(id: string): Promise<ApiResponse<null>> {
-  return del<null>('agent', `/agent/${id}`);
+  return del<null>(`/agent/${id}`);
 }

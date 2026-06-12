@@ -54,6 +54,17 @@ public class WorkflowController {
         return ApiResponse.ok(workflowService.start(id, input));
     }
 
+    @PostMapping("/{id}")
+    public ApiResponse<WfDefinition> update(@PathVariable String id, @RequestBody WfDefinition definition) {
+        return ApiResponse.ok(workflowService.update(id, definition));
+    }
+
+    @DeleteMapping("/{id}")
+    public ApiResponse<Void> delete(@PathVariable String id) {
+        workflowService.delete(id);
+        return ApiResponse.ok(null);
+    }
+
     @PostMapping("/instances/{id}/signal")
     public ApiResponse<WfInstance> signal(@PathVariable String id, @RequestBody Map<String, Object> signalData) {
         return ApiResponse.ok(workflowService.signal(id, signalData));

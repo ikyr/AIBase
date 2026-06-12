@@ -14,7 +14,14 @@ public class PropertiesApiKeyStore implements ApiKeyStore {
     private Set<String> keys = new LinkedHashSet<>();
 
     public void setKeys(Set<String> keys) {
-        this.keys = keys;
+        this.keys = new LinkedHashSet<>();
+        if (keys != null) {
+            for (String key : keys) {
+                if (key != null && !key.isBlank()) {
+                    this.keys.add(key);
+                }
+            }
+        }
     }
 
     public Set<String> getKeys() {

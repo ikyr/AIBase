@@ -27,17 +27,17 @@ export interface ApprovalRecord {
 }
 
 export function listPrompts(): Promise<ApiResponse<PromptVersion[]>> {
-  return get<PromptVersion[]>('platform', '/platform/prompts');
+  return get<PromptVersion[]>('/platform/prompts');
 }
 
 export function listApprovals(): Promise<ApiResponse<ApprovalRecord[]>> {
-  return get<ApprovalRecord[]>('platform', '/platform/approvals');
+  return get<ApprovalRecord[]>('/platform/approvals');
 }
 
 export function approveApproval(id: string): Promise<ApiResponse<ApprovalRecord>> {
-  return post<ApprovalRecord>('platform', `/platform/approvals/${id}/approve`);
+  return post<ApprovalRecord>(`/platform/approvals/${id}/approve`);
 }
 
 export function rejectApproval(id: string): Promise<ApiResponse<ApprovalRecord>> {
-  return post<ApprovalRecord>('platform', `/platform/approvals/${id}/reject`);
+  return post<ApprovalRecord>(`/platform/approvals/${id}/reject`);
 }

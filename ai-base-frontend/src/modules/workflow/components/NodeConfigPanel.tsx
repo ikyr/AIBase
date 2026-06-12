@@ -131,6 +131,37 @@ export default function NodeConfigPanel({ open, data, nodeId, onClose, onSave, o
             <Input placeholder="node_001,node_002" />
           </Form.Item>
         )}
+        {data?.nodeType === 'QUESTION_CLASSIFIER' && (
+          <>
+            <Form.Item name={['config', 'input']} label="输入变量">
+              <Input placeholder="{{query}}" />
+            </Form.Item>
+            <Form.Item name={['config', 'classes']} label="分类列表 (逗号分隔)">
+              <Input placeholder="技术问题, 商务问题, 其他" />
+            </Form.Item>
+          </>
+        )}
+        {data?.nodeType === 'VARIABLE_ASSIGNER' && (
+          <Form.Item name={['config', 'assignments']} label="赋值列表 (JSON)">
+            <Input.TextArea rows={4} placeholder='[{"variable":"status","value":"approved","type":"string"}]' />
+          </Form.Item>
+        )}
+        {data?.nodeType === 'HTTP_REQUEST' && (
+          <>
+            <Form.Item name={['config', 'url']} label="URL">
+              <Input placeholder="https://api.example.com/data" />
+            </Form.Item>
+            <Form.Item name={['config', 'method']} label="Method" initialValue="GET">
+              <Select options={[{value:'GET'},{value:'POST'},{value:'PUT'},{value:'DELETE'}]} />
+            </Form.Item>
+            <Form.Item name={['config', 'headers']} label="Headers (JSON)">
+              <Input.TextArea rows={2} placeholder='{"Authorization":"Bearer xxx"}' />
+            </Form.Item>
+            <Form.Item name={['config', 'body']} label="Body">
+              <Input.TextArea rows={3} placeholder='{"key":"value"}' />
+            </Form.Item>
+          </>
+        )}
       </Form>
     </Drawer>
   );

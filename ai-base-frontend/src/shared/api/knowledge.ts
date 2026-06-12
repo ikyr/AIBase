@@ -7,7 +7,7 @@ export type {
   IngestRequest,
   IngestResult,
   SearchRequest,
-  SearchResult,
+  SearchResults,
   KnowledgeStats,
 } from './types';
 import type {
@@ -16,7 +16,7 @@ import type {
   IngestRequest,
   IngestResult,
   SearchRequest,
-  SearchResult,
+  SearchResults,
   KnowledgeStats,
 } from './types';
 
@@ -28,8 +28,8 @@ export async function listKb(): Promise<ApiResponse<KbConfigInfo[]>> {
   return client.get('/knowledge/kb') as Promise<ApiResponse<KbConfigInfo[]>>;
 }
 
-export async function searchKb(data: SearchRequest): Promise<ApiResponse<SearchResult>> {
-  return client.post('/knowledge/search', data) as Promise<ApiResponse<SearchResult>>;
+export async function searchKb(data: SearchRequest): Promise<ApiResponse<SearchResults>> {
+  return client.post('/knowledge/search', data) as Promise<ApiResponse<SearchResults>>;
 }
 
 export async function ingestDocument(data: IngestRequest): Promise<ApiResponse<IngestResult>> {

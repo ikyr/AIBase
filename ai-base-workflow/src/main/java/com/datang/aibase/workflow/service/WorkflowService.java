@@ -14,6 +14,10 @@ public interface WorkflowService {
 
     WfDefinition create(WfDefinition definition);
 
+    WfDefinition update(String id, WfDefinition definition);
+
+    void delete(String id);
+
     List<WfInstance> listInstances(int limit);
 
     WfInstance start(String definitionId, Map<String, Object> input);

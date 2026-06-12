@@ -34,15 +34,19 @@ public class SlaTracker {
             Duration elapsed = Duration.between(record.getCreatedAt(), now);
             long elapsedHours = elapsed.toHours();
 
-            if (elapsedHours >= 48 && !"ESCALATED".equals(record.getStatus())) {
-                log.warn("SLA CRITICAL: Approval {} has been pending for {} hours (48h threshold)",
+            if (elapsedHours >= 48) {
+                log.warn("SLA CRITICAL: Approval {} has been pending for {} hours, escalating",
                         record.getId(), elapsedHours);
+                approvalRecordMapper.updateStatusWithReason(record.getId(), "ESCALATED",
+                        "Auto-escalated after 48h pending, elapsed: " + elapsedHours + "h");
             } else if (elapsedHours >= 24) {
-                log.warn("SLA WARNING: Approval {} has been pending for {} hours (24h threshold)",
+                log.warn("SLA WARNING: Approval {} has been pending for {} hours",
                         record.getId(), elapsedHours);
             } else if (elapsedHours >= 12) {
-                log.info("SLA NOTICE: Approval {} has been pending for {} hours",
-                        record.getId(), elapsedHours);
+                log.info("SLA NOTICE: Approval {} pending for {} hours, step {}/{}",
+                        record.getId(), elapsedHours,
+                        record.getChainStep() != null ? record.getChainStep() : 1,
+                        record.getTotalSteps() != null ? record.getTotalSteps() : 1);
             }
         }
     }

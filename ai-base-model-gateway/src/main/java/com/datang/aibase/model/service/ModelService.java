@@ -15,6 +15,10 @@ public interface ModelService {
 
     ModelConfig create(ModelConfig config);
 
+    ModelConfig update(String id, ModelConfig config);
+
+    void delete(String id);
+
     List<ModelRouteRule> listRules();
 
     ModelRouteRule addRule(ModelRouteRule rule);

@@ -21,4 +21,12 @@ public interface ModelConfigMapper {
             "VALUES (#{id}, #{name}, #{provider}, #{endpoint}, #{apiKeyRef}, #{maxTokens}, " +
             "#{capabilities}, #{priority}, #{status}, #{createdAt}, #{updatedAt}, #{createdBy}, #{updatedBy})")
     int insert(ModelConfig entity);
+
+    @Update("UPDATE model_config SET name = #{name}, provider = #{provider}, endpoint = #{endpoint}, " +
+            "api_key_ref = #{apiKeyRef}, max_tokens = #{maxTokens}, capabilities = #{capabilities}, " +
+            "priority = #{priority}, updated_at = NOW() WHERE id = #{id}")
+    int update(ModelConfig entity);
+
+    @Update("UPDATE model_config SET status = 'DELETED', updated_at = NOW() WHERE id = #{id}")
+    int softDelete(String id);
 }

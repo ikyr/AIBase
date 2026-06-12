@@ -1,5 +1,6 @@
 package com.datang.aibase.knowledge.connector;
 
+import com.datang.aibase.knowledge.pipeline.DocumentParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -12,6 +13,11 @@ import java.util.Map;
 public class FileSystemConnector implements DataSourceConnector {
 
     private static final Logger log = LoggerFactory.getLogger(FileSystemConnector.class);
+    private final DocumentParser documentParser;
+
+    public FileSystemConnector(DocumentParser documentParser) {
+        this.documentParser = documentParser;
+    }
 
     @Override
     public String getName() {
@@ -45,11 +51,12 @@ public class FileSystemConnector implements DataSourceConnector {
         try (var stream = Files.list(dir)) {
             stream.filter(Files::isRegularFile).forEach(file -> {
                 try {
-                    String content = Files.readString(file);
                     String fileName = file.getFileName().toString();
-                    String fileType = fileName.contains(".") ? fileName.substring(fileName.lastIndexOf('.') + 1) : "txt";
-                    callback.onDocument(fileName, content, fileType);
-                } catch (IOException e) {
+                    byte[] bytes = Files.readAllBytes(file);
+                    var doc = documentParser.parse(bytes, fileName);
+                    String fileType = doc.mimeType().contains("/") ? doc.mimeType().split("/")[1] : "txt";
+                    callback.onDocument(doc.title(), doc.content(), fileType);
+                } catch (Exception e) {
                     log.warn("Failed to read file {}: {}", file, e.getMessage());
                 }
             });

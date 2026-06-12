@@ -53,12 +53,11 @@ spring:
         - DedupeResponseHeader=Access-Control-Allow-Origin
         - Observability
         - Logging
-        - Auth
-        - RateLimit=100,10
-      globalcors:
-        cors-configurations:
-          '[/**]':
-            allowedOriginPatterns: "*"
-            allowedMethods: "*"
-            allowedHeaders: "*"
-            allowCredentials: true
+        - name: Auth
+          args:
+            validKeys: ${AIBASE_API_KEYS:}
+        - name: RateLimit
+          args:
+            capacity: 100
+            refillRate: 10
+      globalcors: {}

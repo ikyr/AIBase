@@ -7,7 +7,7 @@ set -e
 SERVER="${DEPLOY_SERVER:?}"
 SERVER_USER="${DEPLOY_USER:?}"
 SERVER_PASSWORD="${DEPLOY_PASSWORD:?}"
-SERVER_DIR="${DEPLOY_DIR:/u01/aibase}"
+SERVER_DIR="${DEPLOY_DIR:-/u01/aibase}"
 NODE_SSH="node .ssh-exec.js"
 NODE_SCP="node .scp.js"
 
@@ -25,28 +25,24 @@ echo ""
 
 echo "=== Step 2: Create deployment archive ==="
 ARCHIVE="/tmp/aibase-deploy-$(date +%Y%m%d%H%M%S).tar.gz"
-tar -czf "$ARCHIVE" \
-  docker-compose.yml \
-  docker-compose/ \
-  db/migrations/ \
-  $MODULES/Dockerfile \
-  $MODULES/target/*.jar \
-  ai-base-frontend/Dockerfile \
-  ai-base-frontend/nginx.conf \
-  ai-base-frontend/package.json \
-  ai-base-frontend/package-lock.json \
-  ai-base-frontend/index.html \
-  ai-base-frontend/vite.config.ts \
-  ai-base-frontend/tsconfig.json \
-  ai-base-frontend/tsconfig.node.json \
-  ai-base-frontend/src/ \
-  --exclude='*.orig' --exclude='*~' 2>/dev/null
+
+TAR_FILES="docker-compose.yml docker-compose/ db/migrations/"
+for mod in $MODULES; do
+  TAR_FILES="$TAR_FILES $mod/Dockerfile $mod/target/$mod-*.jar"
+done
+TAR_FILES="$TAR_FILES ai-base-frontend/Dockerfile ai-base-frontend/nginx.conf"
+TAR_FILES="$TAR_FILES ai-base-frontend/package.json ai-base-frontend/package-lock.json"
+TAR_FILES="$TAR_FILES ai-base-frontend/index.html ai-base-frontend/vite.config.ts"
+TAR_FILES="$TAR_FILES ai-base-frontend/tsconfig.json ai-base-frontend/tsconfig.node.json"
+TAR_FILES="$TAR_FILES ai-base-frontend/dist/"
+
+tar -czf "$ARCHIVE" --exclude='*.orig' --exclude='*~' $TAR_FILES 2>/dev/null
 
 echo "Archive: $ARCHIVE ($(du -h $ARCHIVE | cut -f1))"
 echo ""
 
 echo "=== Step 3: Transfer to server ==="
-$NODE_SCP "$ARCHIVE" "$SERVER_DIR/aibase.tar.gz"
+$NODE_SCP "$ARCHIVE" "//$SERVER_DIR/aibase.tar.gz"
 echo ""
 
 echo "=== Step 4: Extract on server ==="
@@ -63,7 +59,7 @@ echo ""
 echo "=== Step 5: Create .env file ==="
 $NODE_SSH "$SERVER" "
   mkdir -p $SERVER_DIR/docker-compose && \
-  cat > $SERVER_DIR/docker-compose/.env << ENVEOF
+  cat > $SERVER_DIR/docker-compose/.env << 'ENVEOF'
 # ---- 基础设施密码（必须设置） ----
 PG_PASSWORD=${PG_PASSWORD:?}
 REDIS_PASSWORD=${REDIS_PASSWORD:?}
@@ -97,7 +93,7 @@ ROCKETMQ_NAMESRV=rocketmq-namesrv:9876
 OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4317
 
 # ---- AI 模型 ----
-DASHSCOPE_API_KEY=\${DASHSCOPE_API_KEY:?}
+DASHSCOPE_API_KEY=${DASHSCOPE_API_KEY:?}
 OPENAI_API_KEY=
 EMBEDDING_MODEL=text-embedding-v3
 

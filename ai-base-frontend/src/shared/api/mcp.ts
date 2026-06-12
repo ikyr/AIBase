@@ -31,29 +31,29 @@ export interface McpTool {
 }
 
 export function listMcpServers(): Promise<ApiResponse<McpServer[]>> {
-  return get<McpServer[]>('mcp', '/mcp/servers');
+  return get<McpServer[]>('/mcp/servers');
 }
 
 export function getMcpServerById(id: string): Promise<ApiResponse<McpServer>> {
-  return get<McpServer>('mcp', `/mcp/servers/${id}`);
+  return get<McpServer>(`/mcp/servers/${id}`);
 }
 
 export function listMcpServerTools(serverId: string): Promise<ApiResponse<McpTool[]>> {
-  return get<McpTool[]>('mcp', `/mcp/servers/${serverId}/tools`);
+  return get<McpTool[]>(`/mcp/servers/${serverId}/tools`);
 }
 
 export function listAllMcpTools(): Promise<ApiResponse<McpTool[]>> {
-  return get<McpTool[]>('mcp', '/mcp/tools');
+  return get<McpTool[]>('/mcp/tools');
 }
 
 export function createMcpServer(data: McpCreateRequest): Promise<ApiResponse<McpServer>> {
-  return post<McpServer>('mcp', '/mcp/servers', data);
+  return post<McpServer>('/mcp/servers', data);
 }
 
 export function updateMcpServer(id: string, data: Partial<McpCreateRequest>): Promise<ApiResponse<McpServer>> {
-  return post<McpServer>('mcp', `/mcp/servers/${id}`, data);
+  return post<McpServer>(`/mcp/servers/${id}`, data);
 }
 
 export function deleteMcpServer(id: string): Promise<ApiResponse<null>> {
-  return del<null>('mcp', `/mcp/servers/${id}`);
+  return del<null>(`/mcp/servers/${id}`);
 }

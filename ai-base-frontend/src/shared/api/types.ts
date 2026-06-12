@@ -67,19 +67,15 @@ export interface SearchRequest {
   strategy?: 'VECTOR' | 'KEYWORD' | 'HYBRID';
 }
 
-export interface SearchResult {
-  query: string;
-  tookMs: number;
-  hits: SearchHit[];
-}
-
 export interface SearchHit {
+  chunkId: string;
   docId: string;
   chunkIndex: number;
   content: string;
   score: number;
-  metadata?: Record<string, string>;
 }
+
+export type SearchResults = SearchHit[];
 
 export interface KnowledgeStats {
   kbId: string;

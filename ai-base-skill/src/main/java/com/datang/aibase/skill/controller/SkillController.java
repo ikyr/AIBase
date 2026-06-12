@@ -35,6 +35,17 @@ public class SkillController {
         return ApiResponse.ok(skillService.create(skill));
     }
 
+    @PostMapping("/{id}")
+    public ApiResponse<SkillDef> update(@PathVariable String id, @RequestBody SkillDef skill) {
+        return ApiResponse.ok(skillService.update(id, skill));
+    }
+
+    @DeleteMapping("/{id}")
+    public ApiResponse<Void> delete(@PathVariable String id) {
+        skillService.delete(id);
+        return ApiResponse.ok(null);
+    }
+
     @GetMapping("/{id}/versions")
     public ApiResponse<List<SkillVersion>> getVersions(@PathVariable String id) {
         return ApiResponse.ok(skillService.getVersions(id));

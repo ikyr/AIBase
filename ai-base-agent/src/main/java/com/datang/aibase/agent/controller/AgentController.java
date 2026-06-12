@@ -37,6 +37,17 @@ public class AgentController {
         return ApiResponse.ok(agentService.create(agent));
     }
 
+    @PostMapping("/{id}")
+    public ApiResponse<AgentDef> update(@PathVariable String id, @RequestBody AgentDef agent) {
+        return ApiResponse.ok(agentService.update(id, agent));
+    }
+
+    @DeleteMapping("/{id}")
+    public ApiResponse<Void> delete(@PathVariable String id) {
+        agentService.delete(id);
+        return ApiResponse.ok(null);
+    }
+
     @GetMapping("/sessions")
     public ApiResponse<List<AgentSession>> listSessions(@RequestParam(defaultValue = "50") int limit) {
         return ApiResponse.ok(agentService.listSessions(limit));

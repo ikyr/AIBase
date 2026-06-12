@@ -26,4 +26,14 @@ public interface SkillDefMapper {
             "#{params}, #{inputSchema}, #{outputSchema}, #{executionMode}, #{timeoutMs}, #{agentRefId}, " +
             "#{status}, #{createdAt}, #{updatedAt}, #{createdBy}, #{updatedBy})")
     int insert(SkillDef entity);
+
+    @Update("UPDATE skill_def SET name = #{name}, description = #{description}, tags = #{tags}, " +
+            "skill_level = #{skillLevel}, prompt_template = #{promptTemplate}, params = #{params}, " +
+            "input_schema = #{inputSchema}, output_schema = #{outputSchema}, " +
+            "execution_mode = #{executionMode}, timeout_ms = #{timeoutMs}, agent_ref_id = #{agentRefId}, " +
+            "updated_at = NOW() WHERE id = #{id}")
+    int update(SkillDef entity);
+
+    @Update("UPDATE skill_def SET status = 'DELETED', updated_at = NOW() WHERE id = #{id}")
+    int softDelete(String id);
 }

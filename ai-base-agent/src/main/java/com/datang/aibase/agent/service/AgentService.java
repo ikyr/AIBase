@@ -15,6 +15,10 @@ public interface AgentService {
 
     AgentDef create(AgentDef agent);
 
+    AgentDef update(String id, AgentDef agent);
+
+    void delete(String id);
+
     List<AgentSession> listSessions(int limit);
 
     AgentSession createSession(String agentId, String title);

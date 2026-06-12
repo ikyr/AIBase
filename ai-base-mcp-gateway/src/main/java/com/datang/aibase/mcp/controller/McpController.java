@@ -34,6 +34,11 @@ public class McpController {
         return ApiResponse.ok(mcpService.register(server));
     }
 
+    @PostMapping("/servers/{id}")
+    public ApiResponse<McpServer> updateServer(@PathVariable String id, @RequestBody McpServer server) {
+        return ApiResponse.ok(mcpService.updateServer(id, server));
+    }
+
     @DeleteMapping("/servers/{id}")
     public ApiResponse<Void> deleteServer(@PathVariable String id) {
         mcpService.deleteServer(id);

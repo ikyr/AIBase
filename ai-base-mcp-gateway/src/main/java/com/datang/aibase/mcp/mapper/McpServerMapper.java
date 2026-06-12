@@ -27,4 +27,9 @@ public interface McpServerMapper {
 
     @Update("UPDATE mcp_server SET status = 'DELETED', updated_at = NOW() WHERE id = #{id}")
     int delete(String id);
+
+    @Update("UPDATE mcp_server SET name = #{name}, server_type = #{serverType}, " +
+            "transport = #{transport}, endpoint = #{endpoint}, description = #{description}, " +
+            "updated_at = NOW() WHERE id = #{id}")
+    int update(McpServer entity);
 }
