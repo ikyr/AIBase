@@ -9,3 +9,4 @@ docker-compose/.env
 target/
 *.jar
 *.class
+deploy.py
