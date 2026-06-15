@@ -1671,4 +1671,73 @@ Phase 11 ✅ API Gateway (pom.yml + routes config + **AuthGatewayFilterFactory**
 | **Agent** | GraphBridge, NegotiationEngine, ContextWindowManager, ConversationTree all present and implemented |
 | **Workflow** | All 9 node types (CONDITION, PARALLEL, WAIT, etc.) implemented in WorkflowExecutor |
 
+### Completed since last update (2026-06-15) — 项目待完善功能补齐
+
+**Phase 1 — 前端存根页面修复：**
+
+| 页面 | 变更 |
+|------|------|
+| `ModelRouteRulePage` | 新建规则按钮 → 弹出创建表单（名称、模型选择、匹配条件、优先级、降级模型） |
+| `EvalDatasetListPage` | 新建数据集按钮 → 弹出创建表单（名称、评估类型、描述）；修复卡片导航 → `/eval/tasks?datasetId=X` |
+| `ApprovalPage` | 通过/驳回按钮接入 `platformStore.approve(id)` / `reject(id)` 实际 API 调用 |
+| `ConsoleLayout` | 顶部导航栏新增 "🏛️ 平台" 入口 → `/platform/prompts` |
+| `KbListPage` | 删除 Popconfirm 补充 `onConfirm={() => remove(kb.id)}` |
+
+**新增 API 函数：** `createRouteRule`、`deleteRouteRule`、`deleteKb`、`createAgentSession`
+
+**Phase 2 — Store Actions 和 API 连接：**
+
+| Store | 新增 Action | 连接 API |
+|-------|------------|---------|
+| `skillStore` | `fetchLogs` + `logs` 状态 | `listSkillLogs` |
+| `agentStore` | `fetchMessages` + `messages` 状态 | `getAgentMessages` |
+| `knowledgeStore` | `remove`、`ingest`、`deleteDoc` | `deleteKb`、`ingestDocument`、`deleteDocument` |
+| `platformStore` | `approve(id)`、`reject(id)` | `approveApproval`、`rejectApproval` |
+| `evalStore` | `createDataset` | `createEvalDataset` |
+
+**Chat 会话后端持久化重构：**
+- `chatStore.initAgent()` → 启动时获取活跃 Agent 的 ID
+- `chatStore.createSession()` → 调用 `POST /agent/{id}/sessions` 创建后端会话（失败回退到本地模式）
+- `chatStore.switchSession(id)` → 调用 `GET /agent/sessions/{id}/messages` 加载历史消息
+- `chatStore.sendMessage()` → 请求体中附带 `agentId`
+- `ChatInput` → `handleSend` 改为 async，正确等待 `createSession` 完成
+
+**Phase 3 — 后端核心功能补全：**
+
+| 功能 | 变更 |
+|------|------|
+| **CODE 节点 GraalJS 兼容** | `WorkflowExecutor.executeCodeNode` 依次尝试 `graal.js` → `JavaScript` → `js` 引擎；未找到时返回明确错误信息 |
+| **GraalJS 运行时依赖** | `ai-base-workflow/pom.xml` 和 `ai-base-skill/pom.xml` 新增 `org.graalvm.js:js-scriptengine:24.1.0` (runtime scope) |
+| **模型路由增强** | `ModelRouter.matchRule` 新增三种匹配模式：正则 (`=~`)、不等 (`!=`)、列表 (`in [...]`)，原有 `==` 精确匹配保留 |
+| **SSE 流式响应** | `AgentController` 新增 `POST /chat/stream` 端点，返回 `SseEmitter`（2分钟超时），按 token 逐词推送，以 `done` 事件结束 |
+| **前端 SSE 消费** | `chatStore.sendMessage` 优先尝试 `fetch` + `ReadableStream` 消费 SSE 流，实时累积 token 更新 UI；失败回退到普通 REST 调用 |
+
+**Phase 4 — 平台能力扩展：**
+
+| 功能 | 变更 |
+|------|------|
+| **WfTemplate 实体** | 新增 `WfTemplate.java` (extends BaseEntity)、`WfTemplateMapper.java` (MyBatis)、`V010__wf_template.sql` (Flyway migration) |
+| **模板 CRUD** | `WorkflowController` 新增 6 个端点：`GET/POST /templates`、`GET/POST/DELETE /templates/{id}`、`POST /templates/{id}/instantiate` |
+| **模板实例化** | `instantiateTemplate(id, name)` → 从模板 DAG 创建 `WfDefinition`，自动增加 `usage_count` |
+| **TavilySearchAdapter** | 新增 `TavilySearchAdapter` 实现 `SearchEngineAdapter`，调用 Tavily Search API (`api.tavily.com`)，从环境变量 `TAVILY_API_KEY` 读取密钥 |
+| **WebSearchTool** | 新增 Agent 可调用工具 `web_search`，通过 knowledge-service 的 `/external-search` 端点进行联网搜索 |
+
+**Phase 5 — 前端单元测试：**
+
+| 项目 | 变更 |
+|------|------|
+| **vitest 依赖** | `package.json` 新增 `vitest`、`@vitest/coverage-v8`、`jsdom` 开发依赖 |
+| **vitest 配置** | 环境从 `jsdom` 改为 `node`（ESM 兼容），Store 测试无需 DOM |
+| **modelStore 测试** | 新增 `modelStore.test.ts` — 7 个测试用例覆盖 `fetchList`、`fetchRules`、`create`、`createRule` 的成功和失败路径 |
+
+**新增文件清单（本次会话）：**
+- `ai-base-frontend/src/modules/model/stores/modelStore.test.ts`
+- `ai-base-workflow/src/main/java/.../entity/WfTemplate.java`
+- `ai-base-workflow/src/main/java/.../mapper/WfTemplateMapper.java`
+- `ai-base-knowledge/src/main/java/.../search/TavilySearchAdapter.java`
+- `ai-base-agent/src/main/java/.../tool/WebSearchTool.java`
+- `db/migrations/V010__wf_template.sql`
+
+**修改文件：22 个** (前端 16 + 后端 6)，TypeScript 零错误通过，7 个 vitest 测试通过。
+
 Phases 3-9 have no hard dependencies between them once Phases 0-2 are complete, and can be built in parallel.
