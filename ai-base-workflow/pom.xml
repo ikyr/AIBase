@@ -24,6 +24,12 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.graalvm.js</groupId>
+            <artifactId>js-scriptengine</artifactId>
+            <version>24.1.0</version>
+            <scope>runtime</scope>
+        </dependency>
     </dependencies>
 
     <build>

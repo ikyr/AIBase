@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { listModels, listRouteRules, listCallLogs, createModel, updateModel, deleteModel, type ModelConfig, type ModelRouteRule, type ModelCallLog, type ModelCreateRequest } from '../../../shared/api/model';
+import { listModels, listRouteRules, listCallLogs, createModel, updateModel, deleteModel, createRouteRule, deleteRouteRule, type ModelConfig, type ModelRouteRule, type ModelCallLog, type ModelCreateRequest, type RouteRuleCreateRequest } from '../../../shared/api/model';
 
 interface ModelState {
   models: ModelConfig[];
@@ -12,6 +12,8 @@ interface ModelState {
   create: (data: ModelCreateRequest) => Promise<ModelConfig | null>;
   update: (id: string, data: Partial<ModelCreateRequest>) => Promise<ModelConfig | null>;
   remove: (id: string) => Promise<boolean>;
+  createRule: (data: RouteRuleCreateRequest) => Promise<ModelRouteRule | null>;
+  removeRule: (id: string) => Promise<boolean>;
 }
 
 export const useModelStore = create<ModelState>((set) => ({
@@ -62,6 +64,26 @@ export const useModelStore = create<ModelState>((set) => ({
     const res = await deleteModel(id);
     if (res.success) {
       set((s) => ({ models: s.models.filter((m) => m.id !== id), loading: false }));
+      return true;
+    }
+    set({ loading: false });
+    return false;
+  },
+  createRule: async (data: RouteRuleCreateRequest) => {
+    set({ loading: true });
+    const res = await createRouteRule(data);
+    if (res.success && res.data) {
+      set((s) => ({ rules: [...s.rules, res.data!], loading: false }));
+      return res.data;
+    }
+    set({ loading: false });
+    return null;
+  },
+  removeRule: async (id: string) => {
+    set({ loading: true });
+    const res = await deleteRouteRule(id);
+    if (res.success) {
+      set((s) => ({ rules: s.rules.filter((r) => r.id !== id), loading: false }));
       return true;
     }
     set({ loading: false });

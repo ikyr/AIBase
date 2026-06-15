@@ -48,13 +48,59 @@ public class ModelRouter {
 
     private boolean matchRule(ModelRouteRule rule, Map<String, Object> context) {
         String expr = rule.getMatchExpression();
-        if (expr == null || expr.equals("*")) return true;
-        // Simple key=value matching: "agent_type == \"writing\""
-        String[] parts = expr.split("==");
-        if (parts.length != 2) return false;
-        String key = parts[0].trim();
-        String expected = parts[1].trim().replace("\"", "");
-        Object actual = context.get(key);
-        return expected.equals(actual);
+        if (expr == null || expr.isBlank() || expr.equals("*")) return true;
+
+        // 1. Regex match: "key =~ /pattern/"
+        if (expr.contains("=~")) {
+            String[] parts = expr.split("=~", 2);
+            if (parts.length == 2) {
+                String key = parts[0].trim();
+                String pattern = parts[1].trim().replaceAll("^/|/$", "");
+                Object actual = context.get(key);
+                return actual != null && actual.toString().matches(pattern);
+            }
+        }
+
+        // 2. Not-equal: "key != value"
+        if (expr.contains("!=")) {
+            String[] parts = expr.split("!=", 2);
+            if (parts.length == 2) {
+                String key = parts[0].trim();
+                String expected = parts[1].trim().replace("\"", "");
+                Object actual = context.get(key);
+                return actual != null && !expected.equals(actual.toString());
+            }
+        }
+
+        // 3. In-list: "key in [v1, v2, v3]"
+        if (expr.contains(" in ")) {
+            String[] parts = expr.split(" in ", 2);
+            if (parts.length == 2) {
+                String key = parts[0].trim();
+                String listStr = parts[1].trim().replaceAll("[\\[\\]]", "");
+                String[] values = listStr.split("\\s*,\\s*");
+                Object actual = context.get(key);
+                if (actual != null) {
+                    for (String v : values) {
+                        if (v.trim().replace("\"", "").equals(actual.toString())) return true;
+                    }
+                }
+                return false;
+            }
+        }
+
+        // 4. Default: key == value
+        if (expr.contains("==")) {
+            String[] parts = expr.split("==", 2);
+            if (parts.length == 2) {
+                String key = parts[0].trim();
+                String expected = parts[1].trim().replace("\"", "");
+                Object actual = context.get(key);
+                return expected.equals(actual != null ? actual.toString() : null);
+            }
+        }
+
+        log.warn("Unrecognized match expression: {}", expr);
+        return false;
     }
 }

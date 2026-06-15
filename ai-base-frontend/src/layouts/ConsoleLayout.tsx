@@ -21,6 +21,7 @@ const navItems: NavItem[] = [
   { key: 'mcp', label: 'MCP', path: '/mcp', icon: '🔌', group: 'admin' },
   { key: 'model', label: '模型', path: '/model', icon: '🧠', group: 'admin' },
   { key: 'eval', label: '评估', path: '/eval', icon: '📊', group: 'admin' },
+  { key: 'platform', label: '平台', path: '/platform/prompts', icon: '🏛️', group: 'admin' },
 ];
 
 export default function ConsoleLayout() {

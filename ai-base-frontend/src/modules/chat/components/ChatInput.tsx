@@ -8,21 +8,23 @@ export default function ChatInput() {
   const [value, setValue] = useState('');
   const loading = useChatStore((s) => s.loading);
   const activeSessionId = useChatStore((s) => s.activeSessionId);
-  const createSession = useChatStore((s) => s.createSession);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     inputRef.current?.focus();
   }, [activeSessionId]);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     const content = value.trim();
     if (!content || loading) return;
-    if (!activeSessionId) createSession();
-    // sendMessage reads activeSessionId from store on next tick
-    setTimeout(() => {
+    let sid = useChatStore.getState().activeSessionId;
+    if (!sid) {
+      await useChatStore.getState().createSession();
+      sid = useChatStore.getState().activeSessionId;
+    }
+    if (sid) {
       useChatStore.getState().sendMessage(content);
-    }, 0);
+    }
     setValue('');
   };
 

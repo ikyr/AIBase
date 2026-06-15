@@ -79,3 +79,7 @@ export function updateAgent(id: string, data: Partial<AgentCreateRequest>): Prom
 export function deleteAgent(id: string): Promise<ApiResponse<null>> {
   return del<null>(`/agent/${id}`);
 }
+
+export function createAgentSession(agentId: string): Promise<ApiResponse<AgentSession>> {
+  return post<AgentSession>(`/agent/${agentId}/sessions`);
+}

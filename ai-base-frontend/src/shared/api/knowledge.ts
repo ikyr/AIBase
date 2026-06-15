@@ -43,3 +43,7 @@ export async function deleteDocument(docId: string): Promise<ApiResponse<null>> 
 export async function getKbStats(kbId: string): Promise<ApiResponse<KnowledgeStats>> {
   return client.get(`/knowledge/kb/${kbId}/stats`) as Promise<ApiResponse<KnowledgeStats>>;
 }
+
+export async function deleteKb(kbId: string): Promise<ApiResponse<null>> {
+  return client.delete(`/knowledge/kb/${kbId}`) as Promise<ApiResponse<null>>;
+}

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { listAgents, getAgentById, listAgentSessions, createAgent, updateAgent, deleteAgent, type AgentDef, type AgentSession, type AgentCreateRequest } from '../../../shared/api/agent';
+import { listAgents, getAgentById, listAgentSessions, getAgentMessages, createAgent, updateAgent, deleteAgent, type AgentDef, type AgentSession, type AgentMessage, type AgentCreateRequest } from '../../../shared/api/agent';
 
 interface AgentState {
   agents: AgentDef[];
@@ -7,9 +7,11 @@ interface AgentState {
   error: string | null;
   detail: AgentDef | null;
   sessions: AgentSession[];
+  messages: AgentMessage[];
   fetchList: () => Promise<void>;
   fetchDetail: (id: string) => Promise<void>;
   fetchSessions: () => Promise<void>;
+  fetchMessages: (sessionId: string) => Promise<void>;
   create: (data: AgentCreateRequest) => Promise<AgentDef | null>;
   update: (id: string, data: Partial<AgentCreateRequest>) => Promise<AgentDef | null>;
   remove: (id: string) => Promise<boolean>;
@@ -21,6 +23,7 @@ export const useAgentStore = create<AgentState>((set) => ({
   error: null,
   detail: null,
   sessions: [],
+  messages: [],
   fetchList: async () => {
     set({ loading: true, error: null });
     const res = await listAgents();
@@ -35,6 +38,11 @@ export const useAgentStore = create<AgentState>((set) => ({
     set({ loading: true });
     const res = await listAgentSessions();
     set({ sessions: res.success ? (res.data ?? []) : [], loading: false });
+  },
+  fetchMessages: async (sessionId: string) => {
+    set({ loading: true });
+    const res = await getAgentMessages(sessionId);
+    set({ messages: res.success ? (res.data ?? []) : [], loading: false });
   },
   create: async (data: AgentCreateRequest) => {
     set({ loading: true });

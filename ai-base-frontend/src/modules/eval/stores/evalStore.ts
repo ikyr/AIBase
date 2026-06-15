@@ -1,9 +1,9 @@
 import { create } from 'zustand';
 import {
   listEvalDatasets, listEvalTasks, getEvalResults,
-  createEvalTask, executeEvalTask,
+  createEvalTask, executeEvalTask, createEvalDataset,
   type EvalDataset, type EvalTask, type EvalResult,
-  type CreateTaskRequest,
+  type CreateTaskRequest, type CreateDatasetRequest,
 } from '../../../shared/api/eval';
 
 interface EvalState {
@@ -15,6 +15,7 @@ interface EvalState {
   fetchList: () => Promise<void>;
   fetchTasks: () => Promise<void>;
   fetchResults: (taskId: string) => Promise<void>;
+  createDataset: (req: CreateDatasetRequest) => Promise<EvalDataset | null>;
   createTask: (req: CreateTaskRequest) => Promise<void>;
   executeTask: (taskId: string) => Promise<void>;
 }
@@ -34,6 +35,19 @@ export const useEvalStore = create<EvalState>((set) => ({
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Unknown error';
       set({ error: message, loading: false });
+    }
+  },
+  createDataset: async (req: CreateDatasetRequest) => {
+    set({ loading: true, error: null });
+    try {
+      const res = await createEvalDataset(req);
+      if (!res.success || !res.data) throw new Error(res.error || 'Failed to create dataset');
+      set((s) => ({ datasets: [...s.datasets, res.data!], loading: false }));
+      return res.data;
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      set({ error: message, loading: false });
+      return null;
     }
   },
   fetchTasks: async () => {

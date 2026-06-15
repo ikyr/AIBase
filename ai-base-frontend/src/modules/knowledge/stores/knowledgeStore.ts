@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { listKb, createKb, searchKb, type KbConfigInfo, type KbCreateRequest, type SearchResults } from '../../../shared/api/knowledge';
+import { listKb, createKb, searchKb, deleteKb, ingestDocument, deleteDocument, type KbConfigInfo, type KbCreateRequest, type IngestRequest, type IngestResult, type SearchResults } from '../../../shared/api/knowledge';
 
 interface KnowledgeState {
   kbs: KbConfigInfo[];
@@ -9,6 +9,9 @@ interface KnowledgeState {
   fetchList: () => Promise<void>;
   fetchDetail: (id: string) => Promise<void>;
   create: (req: KbCreateRequest) => Promise<void>;
+  remove: (id: string) => Promise<void>;
+  ingest: (req: IngestRequest) => Promise<IngestResult | null>;
+  deleteDoc: (docId: string) => Promise<void>;
   // Search
   searchResults: SearchResults;
   searching: boolean;
@@ -47,6 +50,34 @@ export const useKnowledgeStore = create<KnowledgeState>((set) => ({
       set((s) => ({ kbs: [...s.kbs, res.data!], loading: false }));
     } else {
       set({ loading: false, error: res.error ?? '创建失败' });
+    }
+  },
+  remove: async (id: string) => {
+    set({ loading: true, error: null });
+    const res = await deleteKb(id);
+    if (res.success) {
+      set((s) => ({ kbs: s.kbs.filter((k) => k.id !== id), loading: false }));
+    } else {
+      set({ loading: false, error: res.error ?? '删除失败' });
+    }
+  },
+  ingest: async (req: IngestRequest) => {
+    set({ loading: true, error: null });
+    const res = await ingestDocument(req);
+    if (res.success && res.data) {
+      set({ loading: false });
+      return res.data;
+    }
+    set({ loading: false, error: res.error ?? '文档录入失败' });
+    return null;
+  },
+  deleteDoc: async (docId: string) => {
+    set({ loading: true, error: null });
+    const res = await deleteDocument(docId);
+    if (res.success) {
+      set({ loading: false });
+    } else {
+      set({ loading: false, error: res.error ?? '文档删除失败' });
     }
   },
 

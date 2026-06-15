@@ -344,9 +344,17 @@ public class WorkflowExecutor {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         try {
             Future<Map<String, Object>> future = executor.submit(() -> {
-                var engine = scriptEngineManager.getEngineByName("JavaScript");
+                // Try GraalJS first, then fallback to any available JS engine (Java 21 removed Nashorn)
+                var engine = scriptEngineManager.getEngineByName("graal.js");
                 if (engine == null) {
-                    return Map.<String, Object>of("error", "JavaScript engine not available");
+                    engine = scriptEngineManager.getEngineByName("JavaScript");
+                }
+                if (engine == null) {
+                    engine = scriptEngineManager.getEngineByName("js");
+                }
+                if (engine == null) {
+                    return Map.<String, Object>of("error",
+                        "No JavaScript engine available — add org.graalvm.js:js-scriptengine to classpath");
                 }
                 engine.put("ctx", context);
                 Object result = engine.eval(code);

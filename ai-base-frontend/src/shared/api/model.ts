@@ -73,3 +73,21 @@ export function updateModel(id: string, data: Partial<ModelCreateRequest>): Prom
 export function deleteModel(id: string): Promise<ApiResponse<null>> {
   return del<null>(`/model/${id}`);
 }
+
+// Route rules
+
+export interface RouteRuleCreateRequest {
+  name: string;
+  modelId: string;
+  matchExpression: string;
+  priority?: number;
+  fallbackModelId?: string;
+}
+
+export function createRouteRule(data: RouteRuleCreateRequest): Promise<ApiResponse<ModelRouteRule>> {
+  return post<ModelRouteRule>('/model/rules', data);
+}
+
+export function deleteRouteRule(id: string): Promise<ApiResponse<null>> {
+  return del<null>(`/model/rules/${id}`);
+}

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { listSkills, getSkillById, getSkillVersions, createSkill, updateSkill, deleteSkill, type SkillDef, type SkillVersion, type SkillCreateRequest } from '../../../shared/api/skill';
+import { listSkills, getSkillById, getSkillVersions, listSkillLogs, createSkill, updateSkill, deleteSkill, type SkillDef, type SkillVersion, type SkillExecutionLog, type SkillCreateRequest } from '../../../shared/api/skill';
 
 const levelLabel: Record<string, string> = { PROMPT: 'Prompt模板', FUNCTION: '函数', AGENT: '子Agent' };
 const levelColor: Record<string, string> = { PROMPT: '#f0f5ff', FUNCTION: '#f0fdf4', AGENT: '#fffcf0' };
@@ -9,9 +9,11 @@ interface SkillState {
   loading: boolean;
   detail: SkillDef | null;
   versions: SkillVersion[];
+  logs: SkillExecutionLog[];
   fetchList: () => Promise<void>;
   fetchDetail: (id: string) => Promise<void>;
   fetchVersions: (id: string) => Promise<void>;
+  fetchLogs: () => Promise<void>;
   create: (data: SkillCreateRequest) => Promise<SkillDef | null>;
   update: (id: string, data: Partial<SkillCreateRequest>) => Promise<SkillDef | null>;
   remove: (id: string) => Promise<boolean>;
@@ -22,6 +24,7 @@ export const useSkillStore = create<SkillState>((set) => ({
   loading: false,
   detail: null,
   versions: [],
+  logs: [],
   fetchList: async () => {
     set({ loading: true });
     const res = await listSkills();
@@ -36,6 +39,11 @@ export const useSkillStore = create<SkillState>((set) => ({
     set({ loading: true });
     const res = await getSkillVersions(id);
     set({ versions: res.success ? (res.data ?? []) : [], loading: false });
+  },
+  fetchLogs: async () => {
+    set({ loading: true });
+    const res = await listSkillLogs();
+    set({ logs: res.success ? (res.data ?? []) : [], loading: false });
   },
   create: async (data: SkillCreateRequest) => {
     set({ loading: true });

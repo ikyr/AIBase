@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { listPrompts, listApprovals, type PromptVersion, type ApprovalRecord } from '../../../shared/api/platform';
+import { listPrompts, listApprovals, approveApproval, rejectApproval, type PromptVersion, type ApprovalRecord } from '../../../shared/api/platform';
 
 const typeLabel: Record<string, string> = { PUBLISH: '发布', DEPLOY: '部署', EXECUTE: '执行' };
 const typeColor: Record<string, string> = { PUBLISH: '#f0f5ff', DEPLOY: '#f0fdf4', EXECUTE: '#fffcf0' };
@@ -13,6 +13,8 @@ interface PlatformState {
   error: string | null;
   fetchPrompts: () => Promise<void>;
   fetchApprovals: () => Promise<void>;
+  approve: (id: string) => Promise<void>;
+  reject: (id: string) => Promise<void>;
 }
 
 export const usePlatformStore = create<PlatformState>((set) => ({
@@ -37,6 +39,34 @@ export const usePlatformStore = create<PlatformState>((set) => ({
       const res = await listApprovals();
       if (!res.success) throw new Error(res.error || 'Failed to fetch approvals');
       set({ approvals: res.data ?? [], loading: false });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      set({ error: message, loading: false });
+    }
+  },
+  approve: async (id: string) => {
+    set({ loading: true, error: null });
+    try {
+      const res = await approveApproval(id);
+      if (!res.success || !res.data) throw new Error(res.error || 'Failed to approve');
+      set((s) => ({
+        approvals: s.approvals.map((a) => (a.id === id ? res.data! : a)),
+        loading: false,
+      }));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      set({ error: message, loading: false });
+    }
+  },
+  reject: async (id: string) => {
+    set({ loading: true, error: null });
+    try {
+      const res = await rejectApproval(id);
+      if (!res.success || !res.data) throw new Error(res.error || 'Failed to reject');
+      set((s) => ({
+        approvals: s.approvals.map((a) => (a.id === id ? res.data! : a)),
+        loading: false,
+      }));
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Unknown error';
       set({ error: message, loading: false });

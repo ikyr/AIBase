@@ -11,7 +11,7 @@ import EmptyState from '../../../shared/components/EmptyState';
 import PageHeader from '../../../shared/components/PageHeader';
 
 export default function KbListPage() {
-  const { kbs, loading, error, fetchList } = useKnowledgeStore();
+  const { kbs, loading, error, fetchList, remove } = useKnowledgeStore();
   const [modalOpen, setModalOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -51,7 +51,7 @@ export default function KbListPage() {
                   </div>
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                     <StatusTag status={kb.status} />
-                    <Popconfirm title="确定删除此知识库？">
+                    <Popconfirm title="确定删除此知识库？" onConfirm={() => remove(kb.id)}>
                       <Button size="small" danger icon={<DeleteOutlined />} onClick={(e) => e.stopPropagation()} />
                     </Popconfirm>
                   </div>

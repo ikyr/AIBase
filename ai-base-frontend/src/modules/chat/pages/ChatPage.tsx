@@ -10,7 +10,10 @@ export default function ChatPage() {
   const messages = useChatStore((s) => s.messages);
   const activeSessionId = useChatStore((s) => s.activeSessionId);
   const createSession = useChatStore((s) => s.createSession);
+  const initAgent = useChatStore((s) => s.initAgent);
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => { initAgent(); }, [initAgent]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });

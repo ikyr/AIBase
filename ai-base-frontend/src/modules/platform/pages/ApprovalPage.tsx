@@ -8,7 +8,7 @@ import EmptyState from '../../../shared/components/EmptyState';
 import PageHeader from '../../../shared/components/PageHeader';
 
 export default function ApprovalPage() {
-  const { approvals, loading, fetchApprovals } = usePlatformStore();
+  const { approvals, loading, fetchApprovals, approve, reject } = usePlatformStore();
 
   useEffect(() => { fetchApprovals(); }, [fetchApprovals]);
 
@@ -27,8 +27,8 @@ export default function ApprovalPage() {
     { title: '操作', key: 'action', width: 140,
       render: (_: unknown, r: ApprovalRecord) => r.status === 'PENDING' ? (
         <Space size="small">
-          <Button type="primary" size="small" style={{ fontSize: 11, borderRadius: 6 }}>通过</Button>
-          <Button size="small" style={{ fontSize: 11, borderRadius: 6 }} danger>驳回</Button>
+          <Button type="primary" size="small" style={{ fontSize: 11, borderRadius: 6 }} onClick={() => approve(r.id)}>通过</Button>
+          <Button size="small" style={{ fontSize: 11, borderRadius: 6 }} danger onClick={() => reject(r.id)}>驳回</Button>
         </Space>
       ) : null,
     },
