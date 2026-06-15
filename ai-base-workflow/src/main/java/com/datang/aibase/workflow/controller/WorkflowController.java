@@ -3,6 +3,7 @@ package com.datang.aibase.workflow.controller;
 import com.datang.aibase.common.dto.ApiResponse;
 import com.datang.aibase.workflow.entity.WfDefinition;
 import com.datang.aibase.workflow.entity.WfInstance;
+import com.datang.aibase.workflow.entity.WfTemplate;
 import com.datang.aibase.workflow.service.WorkflowService;
 import org.springframework.web.bind.annotation.*;
 
@@ -68,5 +69,39 @@ public class WorkflowController {
     @PostMapping("/instances/{id}/signal")
     public ApiResponse<WfInstance> signal(@PathVariable String id, @RequestBody Map<String, Object> signalData) {
         return ApiResponse.ok(workflowService.signal(id, signalData));
+    }
+
+    // ---- Templates ----
+
+    @GetMapping("/templates")
+    public ApiResponse<List<WfTemplate>> listTemplates(@RequestParam(required = false) String category) {
+        return ApiResponse.ok(workflowService.listTemplates(category));
+    }
+
+    @GetMapping("/templates/{id}")
+    public ApiResponse<WfTemplate> getTemplate(@PathVariable String id) {
+        return ApiResponse.ok(workflowService.getTemplate(id));
+    }
+
+    @PostMapping("/templates")
+    public ApiResponse<WfTemplate> createTemplate(@RequestBody WfTemplate template) {
+        return ApiResponse.ok(workflowService.createTemplate(template));
+    }
+
+    @PostMapping("/templates/{id}")
+    public ApiResponse<WfTemplate> updateTemplate(@PathVariable String id, @RequestBody WfTemplate template) {
+        return ApiResponse.ok(workflowService.updateTemplate(id, template));
+    }
+
+    @DeleteMapping("/templates/{id}")
+    public ApiResponse<Void> deleteTemplate(@PathVariable String id) {
+        workflowService.deleteTemplate(id);
+        return ApiResponse.ok(null);
+    }
+
+    @PostMapping("/templates/{id}/instantiate")
+    public ApiResponse<WfDefinition> instantiateTemplate(@PathVariable String id, @RequestBody Map<String, String> body) {
+        String name = body.getOrDefault("name", "From Template");
+        return ApiResponse.ok(workflowService.instantiateTemplate(id, name));
     }
 }

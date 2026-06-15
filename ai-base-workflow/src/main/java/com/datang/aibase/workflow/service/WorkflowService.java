@@ -2,6 +2,7 @@ package com.datang.aibase.workflow.service;
 
 import com.datang.aibase.workflow.entity.WfDefinition;
 import com.datang.aibase.workflow.entity.WfInstance;
+import com.datang.aibase.workflow.entity.WfTemplate;
 
 import java.util.List;
 import java.util.Map;
@@ -27,4 +28,12 @@ public interface WorkflowService {
     WfInstance signal(String instanceId, Map<String, Object> signalData);
 
     Map<String, Object> parseDag(String id);
+
+    // Templates
+    List<WfTemplate> listTemplates(String category);
+    WfTemplate getTemplate(String id);
+    WfTemplate createTemplate(WfTemplate template);
+    WfTemplate updateTemplate(String id, WfTemplate template);
+    void deleteTemplate(String id);
+    WfDefinition instantiateTemplate(String templateId, String name);
 }

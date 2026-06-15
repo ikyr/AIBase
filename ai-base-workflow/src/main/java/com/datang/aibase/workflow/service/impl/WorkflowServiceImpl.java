@@ -5,8 +5,10 @@ import com.datang.aibase.workflow.engine.DagParser;
 import com.datang.aibase.workflow.engine.WorkflowExecutor;
 import com.datang.aibase.workflow.entity.WfDefinition;
 import com.datang.aibase.workflow.entity.WfInstance;
+import com.datang.aibase.workflow.entity.WfTemplate;
 import com.datang.aibase.workflow.mapper.WfDefinitionMapper;
 import com.datang.aibase.workflow.mapper.WfInstanceMapper;
+import com.datang.aibase.workflow.mapper.WfTemplateMapper;
 import com.datang.aibase.workflow.service.WorkflowService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,15 +26,18 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     private final WfDefinitionMapper definitionMapper;
     private final WfInstanceMapper instanceMapper;
+    private final WfTemplateMapper templateMapper;
     private final DagParser dagParser;
     private final WorkflowExecutor executor;
 
     public WorkflowServiceImpl(WfDefinitionMapper definitionMapper,
                                WfInstanceMapper instanceMapper,
+                               WfTemplateMapper templateMapper,
                                DagParser dagParser,
                                WorkflowExecutor executor) {
         this.definitionMapper = definitionMapper;
         this.instanceMapper = instanceMapper;
+        this.templateMapper = templateMapper;
         this.dagParser = dagParser;
         this.executor = executor;
     }
@@ -129,6 +134,58 @@ public class WorkflowServiceImpl implements WorkflowService {
         instanceMapper.update(instance);
         log.info("Workflow instance {} resumed, status: {}", instanceId, instance.getStatus());
         return instance;
+    }
+
+    // ---- Templates ----
+
+    @Override
+    public List<WfTemplate> listTemplates(String category) {
+        if (category != null && !category.isBlank()) {
+            return templateMapper.selectByCategory(category);
+        }
+        return templateMapper.selectAll();
+    }
+
+    @Override
+    public WfTemplate getTemplate(String id) {
+        return templateMapper.selectById(id);
+    }
+
+    @Override
+    public WfTemplate createTemplate(WfTemplate template) {
+        if (template.getId() == null || template.getId().isBlank()) {
+            template.setId(SnowflakeIdGenerator.nextIdStr());
+        }
+        templateMapper.insert(template);
+        return template;
+    }
+
+    @Override
+    public WfTemplate updateTemplate(String id, WfTemplate template) {
+        template.setId(id);
+        templateMapper.update(template);
+        return templateMapper.selectById(id);
+    }
+
+    @Override
+    public void deleteTemplate(String id) {
+        templateMapper.softDelete(id);
+    }
+
+    @Override
+    public WfDefinition instantiateTemplate(String templateId, String name) {
+        WfTemplate tpl = templateMapper.selectById(templateId);
+        if (tpl == null) throw new IllegalArgumentException("Template not found: " + templateId);
+
+        templateMapper.incrementUsageCount(templateId);
+
+        WfDefinition def = new WfDefinition();
+        def.setName(name);
+        def.setDescription("From template: " + tpl.getName());
+        def.setDag(tpl.getDag());
+        def.setStatus("DRAFT");
+        definitionMapper.insert(def);
+        return def;
     }
 
     @Override
